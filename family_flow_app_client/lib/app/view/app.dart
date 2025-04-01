@@ -1,10 +1,13 @@
 import 'package:authentication_repository/authentication_repository.dart';
+import 'package:family_repository/family_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
+import 'package:shopping_repository/shopping_repository.dart';
+import 'package:todo_repository/todo_repository.dart';
 import 'package:user_repository/user_repository.dart';
 
 import '../../authentication/authentication.dart';
+import '../../family/family.dart';
 import '../../home/view/view.dart';
 import '../../login/view/view.dart';
 import '../../splash/splash.dart';
@@ -18,16 +21,34 @@ class App extends StatelessWidget {
       providers: [
         RepositoryProvider(
           create: (_) => AuthenticationRepository(),
-          dispose: (repository) => repository.dispose(),
         ),
         RepositoryProvider(create: (_) => UserRepository()),
+        RepositoryProvider(create: (_) => TodoRepository()),
+        RepositoryProvider(
+          create: (context) => FamilyRepository(
+            userRepository: context.read<UserRepository>(),
+          ),
+        ),
+        RepositoryProvider(create: (_) => ShoppingRepository())
       ],
-      child: BlocProvider(
-        lazy: false,
-        create: (context) => AuthenticationBloc(
-          authenticationRepository: context.read<AuthenticationRepository>(),
-          userRepository: context.read<UserRepository>(),
-        )..add(AuthenticationSubscriptionRequested()),
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider(
+            lazy: false,
+            create: (context) => AuthenticationBloc(
+              authenticationRepository:
+                  context.read<AuthenticationRepository>(),
+              userRepository: context.read<UserRepository>(),
+              todoRepository: context.read<TodoRepository>(),
+              shoppingRepository: context.read<ShoppingRepository>(),
+            )..add(AuthenticationSubscriptionRequested()),
+          ),
+          BlocProvider(
+            create: (context) => FamilyBloc(
+              familyRepository: context.read<FamilyRepository>(),
+            )..add(FamilyRequested()),
+          ),
+        ],
         child: const AppView(),
       ),
     );

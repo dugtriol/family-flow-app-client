@@ -7,3 +7,6 @@ sealed class AuthenticationEvent {
 final class AuthenticationSubscriptionRequested extends AuthenticationEvent {}
 
 final class AuthenticationLogoutPressed extends AuthenticationEvent {}
+
+final class AuthenticationUserRefreshed
+    extends AuthenticationEvent {} // Новое событие

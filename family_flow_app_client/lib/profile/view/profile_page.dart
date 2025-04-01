@@ -1,8 +1,13 @@
+import 'package:family_flow_app_client/family/family.dart';
 import 'package:family_flow_app_client/profile/bloc/profile_bloc.dart';
+import 'package:family_repository/family_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../authentication/authentication.dart';
+
+import 'package:family_flow_app_client/family/bloc/family_bloc.dart';
+import 'package:family_repository/family_repository.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -10,13 +15,22 @@ class ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authenticationBloc = context.read<AuthenticationBloc>();
+    final familyRepository = context.read<FamilyRepository>();
 
-    return BlocProvider(
-      create: (_) => ProfileBloc(authenticationBloc: authenticationBloc)
-        ..add(ProfileRequested()),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => ProfileBloc(authenticationBloc: authenticationBloc)
+            ..add(ProfileRequested()),
+        ),
+        // BlocProvider(
+        //   create: (_) => FamilyBloc(familyRepository: familyRepository)
+        //     ..add(FamilyRequested()),
+        // ),
+      ],
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Profile'),
+          title: const Text('Профиль'),
           centerTitle: true,
         ),
         body: BlocBuilder<ProfileBloc, ProfileState>(
@@ -27,28 +41,82 @@ class ProfilePage extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const ProfileAvatar(),
-                      const SizedBox(height: 16),
-                      ProfileInfo(name: user.name, email: user.email),
-                      const SizedBox(height: 16),
-                      const Divider(),
-                      const SizedBox(height: 16),
-                      ProfileSection(label: 'Role', value: user.role),
-                      const SizedBox(height: 8),
-                      ProfileSection(label: 'Family ID', value: user.familyId),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: () {
-                          // Добавьте действие для кнопки, если нужно
-                        },
-                        style: ElevatedButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                      // Аватар и информация о пользователе
+                      Row(
+                        children: [
+                          const ProfileAvatar(),
+                          const SizedBox(width: 16),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                user.name,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                user.familyId.isNotEmpty
+                                    ? 'Семья: есть'
+                                    : 'Семья: отсутствует',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                        child: const Text('Edit Profile'),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Вкладки для перехода
+                      ProfileOption(
+                        icon: Icons.group,
+                        label: 'Семья',
+                        onTap: () {
+                          // Переход на экран семьи с передачей FamilyBloc
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => BlocProvider.value(
+                                value: context.read<FamilyBloc>(),
+                                child: const FamilyPage(),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      const Divider(),
+                      ProfileOption(
+                        icon: Icons.book,
+                        label: 'Дневник',
+                        onTap: () {
+                          // Переход на экран дневника (заглушка)
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const PlaceholderScreen(
+                                title: 'Дневник',
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      const Divider(),
+
+                      // Кнопка "Выйти"
+                      ProfileOption(
+                        icon: Icons.logout,
+                        label: 'Выйти',
+                        onTap: () {
+                          context
+                              .read<ProfileBloc>()
+                              .add(ProfileLogoutRequested());
+                        },
+                        isDestructive: true,
                       ),
                     ],
                   ),
@@ -57,7 +125,7 @@ class ProfilePage extends StatelessWidget {
             } else if (state is ProfileLoadFailure) {
               return Center(
                 child: Text(
-                  'Failed to load profile: ${state.error}',
+                  'Не удалось загрузить профиль: ${state.error}',
                   style: const TextStyle(color: Colors.red),
                 ),
               );
@@ -76,82 +144,68 @@ class ProfileAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const CircleAvatar(
-      radius: 50,
+      radius: 40,
       backgroundColor: Colors.blueAccent,
       child: Icon(
         Icons.person,
-        size: 50,
+        size: 40,
         color: Colors.white,
       ),
     );
   }
 }
 
-class ProfileInfo extends StatelessWidget {
-  const ProfileInfo({
+class ProfileOption extends StatelessWidget {
+  const ProfileOption({
     super.key,
-    required this.name,
-    required this.email,
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.isDestructive = false,
   });
 
-  final String name;
-  final String email;
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  final bool isDestructive;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Text(
-          name,
-          style: const TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-          ),
+    return ListTile(
+      leading: Icon(
+        icon,
+        color: isDestructive ? Colors.red : Theme.of(context).iconTheme.color,
+      ),
+      title: Text(
+        label,
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+          color: isDestructive ? Colors.red : Colors.black,
         ),
-        const SizedBox(height: 8),
-        Text(
-          email,
-          style: const TextStyle(
-            fontSize: 16,
-            color: Colors.grey,
-          ),
-        ),
-      ],
+      ),
+      onTap: onTap,
     );
   }
 }
 
-class ProfileSection extends StatelessWidget {
-  const ProfileSection({
-    super.key,
-    required this.label,
-    required this.value,
-  });
+class PlaceholderScreen extends StatelessWidget {
+  const PlaceholderScreen({super.key, required this.title});
 
-  final String label;
-  final String value;
+  final String title;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(title),
+      ),
+      body: Center(
+        child: Text(
+          'Экран "$title" в разработке',
+          style: const TextStyle(fontSize: 18),
         ),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 16,
-            color: Colors.black54,
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

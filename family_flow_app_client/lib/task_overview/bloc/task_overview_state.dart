@@ -4,14 +4,31 @@ abstract class TaskOverviewState extends Equatable {
   const TaskOverviewState();
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
 /// Начальное состояние
 class TaskOverviewInitial extends TaskOverviewState {}
 
-/// Состояние, когда происходит выход из приложения
-class TaskOverviewLogoutInProgress extends TaskOverviewState {}
+/// Состояние загрузки задач
+class TaskOverviewLoadInProgress extends TaskOverviewState {}
 
-/// Состояние, когда выход завершен
-class TaskOverviewLogoutSuccess extends TaskOverviewState {}
+/// Состояние успешной загрузки задач
+class TaskOverviewLoadSuccess extends TaskOverviewState {
+  const TaskOverviewLoadSuccess({required this.tasks});
+
+  final List<Task> tasks;
+
+  @override
+  List<Object?> get props => [tasks];
+}
+
+/// Состояние ошибки при загрузке задач
+class TaskOverviewLoadFailure extends TaskOverviewState {
+  const TaskOverviewLoadFailure({required this.error});
+
+  final String error;
+
+  @override
+  List<Object?> get props => [error];
+}

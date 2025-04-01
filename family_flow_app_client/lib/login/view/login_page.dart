@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../bloc/login_bloc.dart';
 import 'login_form.dart';
+import '../widgets/widgets.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -15,13 +16,29 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(),
       body: Padding(
         padding: const EdgeInsets.all(12),
         child: BlocProvider(
           create: (context) => LoginBloc(
             authenticationRepository: context.read<AuthenticationRepository>(),
           ),
-          child: const LoginForm(),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              Text(
+                'Вход',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: 16),
+              LoginForm(),
+              SizedBox(height: 16),
+              LoginActions(),
+            ],
+          ),
         ),
       ),
     );

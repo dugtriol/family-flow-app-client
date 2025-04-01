@@ -77,5 +77,21 @@ class AuthenticationRepository {
     _controller.add(AuthenticationStatus.unauthenticated);
   }
 
+  Future<void> sendVerificationCode(String email) async {
+    try {
+      await _authApiClient.sendCode(email);
+    } catch (_) {
+      throw Exception('Failed to send verification code');
+    }
+  }
+
+  Future<bool> verifyCode(String email, String code) async {
+    try {
+      return await _authApiClient.compareCode(email, code);
+    } catch (_) {
+      throw Exception('Failed to verify code');
+    }
+  }
+
   void dispose() => _controller.close();
 }

@@ -12,6 +12,8 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   })  : _authenticationBloc = authenticationBloc,
         super(ProfileInitial()) {
     on<ProfileRequested>(_onProfileRequested);
+    on<ProfileLogoutRequested>(_onLogoutRequested);
+    on<ProfileReset>(_onReset);
   }
 
   final AuthenticationBloc _authenticationBloc;
@@ -26,5 +28,19 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     } else {
       emit(const ProfileLoadFailure(error: 'User not found.'));
     }
+  }
+
+  void _onLogoutRequested(
+    ProfileLogoutRequested event,
+    Emitter<ProfileState> emit,
+  ) {
+    _authenticationBloc.add(AuthenticationLogoutPressed());
+  }
+
+  void _onReset(
+    ProfileReset event,
+    Emitter<ProfileState> emit,
+  ) {
+    emit(ProfileInitial());
   }
 }

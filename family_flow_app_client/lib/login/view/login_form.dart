@@ -50,7 +50,7 @@ class _EmailInput extends StatelessWidget {
         context.read<LoginBloc>().add(LoginEmailChanged(email));
       },
       decoration: InputDecoration(
-        labelText: 'email',
+        labelText: 'Email',
         errorText: displayError != null ? 'invalid email' : null,
       ),
     );
@@ -71,7 +71,7 @@ class _PasswordInput extends StatelessWidget {
       },
       obscureText: true,
       decoration: InputDecoration(
-        labelText: 'password',
+        labelText: 'Пароль',
         errorText: displayError != null ? 'invalid password' : null,
       ),
     );
@@ -92,9 +92,9 @@ class _LoginButton extends StatelessWidget {
     return ElevatedButton(
       key: const Key('loginForm_continue_raisedButton'),
       onPressed: isValid
-          ? () => context.read<LoginBloc>().add(const LoginSubmitted())
+          ? () => context.read<LoginBloc>().add(LoginSubmitted())
           : null,
-      child: const Text('Login'),
+      child: const Text('Войти'),
     );
   }
 }

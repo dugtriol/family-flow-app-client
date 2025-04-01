@@ -1,9 +1,15 @@
 import 'package:family_flow_app_client/home/cubit/home_cubit.dart';
+import 'package:family_flow_app_client/shopping/shopping.dart';
+import 'package:family_repository/family_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shopping_repository/shopping_repository.dart';
+import 'package:todo_repository/todo_repository.dart';
 
+import '../../family/family.dart';
 import '../../profile/view/view.dart';
-import '../../task_overview/view/view.dart';
+import '../../todo/todo.dart';
+import '../../todo/view/todo_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -14,8 +20,21 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => HomeCubit(),
+    final todoRepository = RepositoryProvider.of<TodoRepository>(context);
+    final familyRepository = RepositoryProvider.of<FamilyRepository>(context);
+    final shoppingRepository =
+        RepositoryProvider.of<ShoppingRepository>(context);
+
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => HomeCubit(
+            todoRepository: todoRepository,
+            familyRepository: familyRepository,
+            shoppingRepository: shoppingRepository,
+          ),
+        ),
+      ],
       child: const HomeView(),
     );
   }
@@ -27,18 +46,27 @@ class HomeView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final selectedTab = context.select((HomeCubit cubit) => cubit.state.tab);
+    final todoRepository = context.read<HomeCubit>().todoRepository;
+    final shoppingRepository = context.read<HomeCubit>().shoppingRepository;
+
     return Scaffold(
       body: IndexedStack(
         index: selectedTab.index,
-        children: [TaskOverviewPage(), ProfilePage()],
+        children: [
+          BlocProvider(
+            create: (_) => TodoBloc(todoRepository: todoRepository)
+              ..add(TodoAssignedToRequested()),
+            child: const TodoPage(),
+          ),
+          const PlaceholderScreen(title: 'Сообщения'),
+          const PlaceholderScreen(title: 'Геолокация'),
+          BlocProvider(
+            create: (_) => ShoppingBloc(shoppingRepository: shoppingRepository),
+            child: const ShoppingPage(),
+          ),
+          const ProfilePage(),
+        ],
       ),
-      // floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      // floatingActionButton: FloatingActionButton(
-      //   shape: const CircleBorder(),
-      //   key: const Key('homeView_addTodo_floatingActionButton'),
-      //   onPressed: () => () {},
-      //   child: const Icon(Icons.add),
-      // ),
       bottomNavigationBar: BottomAppBar(
         shape: const CircularNotchedRectangle(),
         child: Row(
@@ -47,12 +75,27 @@ class HomeView extends StatelessWidget {
             _HomeTabButton(
               groupValue: selectedTab,
               value: HomeTab.main,
-              icon: const Icon(Icons.list_rounded),
+              icon: const Icon(Icons.list_rounded, size: 24),
+            ),
+            _HomeTabButton(
+              groupValue: selectedTab,
+              value: HomeTab.messages,
+              icon: const Icon(Icons.chat_rounded, size: 24),
+            ),
+            _HomeTabButton(
+              groupValue: selectedTab,
+              value: HomeTab.geolocation,
+              icon: const Icon(Icons.location_on_rounded, size: 24),
+            ),
+            _HomeTabButton(
+              groupValue: selectedTab,
+              value: HomeTab.shoppingwishlists,
+              icon: const Icon(Icons.shopping_cart_rounded, size: 24),
             ),
             _HomeTabButton(
               groupValue: selectedTab,
               value: HomeTab.profile,
-              icon: const Icon(Icons.person_rounded),
+              icon: const Icon(Icons.person_rounded, size: 24),
             ),
           ],
         ),
@@ -84,28 +127,23 @@ class _HomeTabButton extends StatelessWidget {
   }
 }
 
-// class _UserId extends StatelessWidget {
-//   const _UserId();
+class PlaceholderScreen extends StatelessWidget {
+  const PlaceholderScreen({super.key, required this.title});
 
-//   Future<String?> _getJwtToken() async {
-//     final prefs = await SharedPreferences.getInstance();
-//     return prefs.getString('token');
-//   }
+  final String title;
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return FutureBuilder<String?>(
-//       future: _getJwtToken(),
-//       builder: (context, snapshot) {
-//         if (snapshot.connectionState == ConnectionState.waiting) {
-//           return const CircularProgressIndicator();
-//         } else if (snapshot.hasError) {
-//           return const Text('Error loading JWT token');
-//         } else {
-//           final jwtToken = snapshot.data ?? 'No JWT token found';
-//           return Text('JWT Token: $jwtToken');
-//         }
-//       },
-//     );
-//   }
-// }
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(title),
+      ),
+      body: Center(
+        child: Text(
+          'Экран "$title" в разработке',
+          style: const TextStyle(fontSize: 18),
+        ),
+      ),
+    );
+  }
+}

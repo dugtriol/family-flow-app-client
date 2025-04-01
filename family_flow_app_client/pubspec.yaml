@@ -11,17 +11,31 @@ dependencies:
     sdk: flutter
   authentication_repository:
     path: packages/authentication_repository
-  bloc: ^9.0.0
+  bloc: ^7.0.0
   flow_builder: ^0.1.0
   equatable: ^2.0.0
-  flutter_bloc: ^9.1.0
+  flutter_bloc: ^7.0.0
   formz: ^0.8.0
   user_repository:
     path: packages/user_repository
   form_inputs:
     path: packages/form_inputs
+  task_repository:
+    path: packages/task_repository
   json_annotation: ^4.8.1
   shared_preferences: ^2.0.15
+  family_repository:
+    path: packages/family_repository
+  family_api:
+    path: packages/family_api
+  todo_repository:
+    path: packages/todo_repository
+  todo_api:
+    path: packages/todo_api
+  shopping_repository:
+    path: packages/shopping_repository
+  shopping_api:
+    path: packages/shopping_api
   
 
 dev_dependencies:

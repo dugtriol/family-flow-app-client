@@ -7,5 +7,11 @@ abstract class ProfileEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Событие для запроса данных профиля
+/// Событие для запроса профиля
 class ProfileRequested extends ProfileEvent {}
+
+/// Событие для выхода из аккаунта
+class ProfileLogoutRequested extends ProfileEvent {}
+
+/// Событие для сброса состояния профиля
+class ProfileReset extends ProfileEvent {}

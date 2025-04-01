@@ -52,6 +52,40 @@ class AuthApiClient {
     return token;
   }
 
+  Future<void> sendCode(String email) async {
+    final sendCodeRequest = Uri.parse('$_baseUrl/email/send');
+    final response = await _httpClient.post(
+      sendCodeRequest,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'email': email}),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to send verification code');
+    }
+
+    print('Verification code sent to $email');
+  }
+
+  Future<bool> compareCode(String email, String code) async {
+    final compareCodeRequest = Uri.parse('$_baseUrl/email/compare');
+    final response = await _httpClient.post(
+      compareCodeRequest,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'email': email, 'code': code}),
+    );
+
+    if (response.statusCode == 200) {
+      print('Code comparison successful for $email');
+      return true;
+    } else if (response.statusCode == 400) {
+      print('Invalid verification code for $email');
+      return false;
+    } else {
+      throw Exception('Failed to compare verification code');
+    }
+  }
+
   void close() {
     _httpClient.close();
   }
