@@ -5,9 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shopping_repository/shopping_repository.dart';
 import 'package:todo_repository/todo_repository.dart';
+import 'package:wishlist_repository/wishlist_repository.dart';
 
 import '../../family/family.dart';
 import '../../profile/view/view.dart';
+
+import '../../shopping_wishlist/shopping_wishlist.dart';
 import '../../todo/todo.dart';
 import '../../todo/view/todo_page.dart';
 
@@ -61,8 +64,11 @@ class HomeView extends StatelessWidget {
           const PlaceholderScreen(title: 'Сообщения'),
           const PlaceholderScreen(title: 'Геолокация'),
           BlocProvider(
-            create: (_) => ShoppingBloc(shoppingRepository: shoppingRepository),
-            child: const ShoppingPage(),
+            create: (context) => ShoppingWishlistBloc(
+              shoppingRepository: context.read<ShoppingRepository>(),
+              wishlistRepository: context.read<WishlistRepository>(),
+            ),
+            child: const ShoppingWishlistPage(),
           ),
           const ProfilePage(),
         ],

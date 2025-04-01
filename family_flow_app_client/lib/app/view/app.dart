@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shopping_repository/shopping_repository.dart';
 import 'package:todo_repository/todo_repository.dart';
 import 'package:user_repository/user_repository.dart';
+import 'package:wishlist_repository/wishlist_repository.dart';
 
 import '../../authentication/authentication.dart';
 import '../../family/family.dart';
@@ -29,7 +30,8 @@ class App extends StatelessWidget {
             userRepository: context.read<UserRepository>(),
           ),
         ),
-        RepositoryProvider(create: (_) => ShoppingRepository())
+        RepositoryProvider(create: (_) => ShoppingRepository()),
+        RepositoryProvider(create: (_) => WishlistRepository())
       ],
       child: MultiBlocProvider(
         providers: [
