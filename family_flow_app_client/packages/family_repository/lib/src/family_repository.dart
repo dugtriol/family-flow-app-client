@@ -44,6 +44,14 @@ class FamilyRepository {
     return prefs.getString('token');
   }
 
+  Future<Family> getFamilyById(String familyId) async {
+    final token = await _getJwtToken();
+    if (token == null) {
+      throw Exception('JWT token is missing');
+    }
+    return await _familyApiClient.getFamilyById(familyId, token);
+  }
+
   /// Создание семьи
   Future<void> createFamily(FamilyCreateInput family) async {
     try {

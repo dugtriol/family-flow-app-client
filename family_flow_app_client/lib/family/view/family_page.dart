@@ -41,6 +41,12 @@ class FamilyPage extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  Text(
+                    'Семья: ${state.familyName}',
+                    style: const TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16),
                   const Text(
                     'Нет членов семьи',
                     style: TextStyle(fontSize: 18, color: Colors.grey),
@@ -49,15 +55,29 @@ class FamilyPage extends StatelessWidget {
               ),
             );
           } else if (state is FamilyLoadSuccess) {
-            return ListView.builder(
-              itemCount: state.members.length,
-              itemBuilder: (context, index) {
-                final member = state.members[index];
-                return ListTile(
-                  title: Text(member.name),
-                  subtitle: Text(member.email),
-                );
-              },
+            return Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    'Семья: ${state.familyName}',
+                    style: const TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: state.members.length,
+                    itemBuilder: (context, index) {
+                      final member = state.members[index];
+                      return ListTile(
+                        title: Text(member.name),
+                        subtitle: Text(member.email),
+                      );
+                    },
+                  ),
+                ),
+              ],
             );
           } else if (state is FamilyLoadFailure) {
             return Center(
@@ -157,10 +177,29 @@ class FamilyPage extends StatelessWidget {
             ),
             ElevatedButton(
               onPressed: () {
-                context
-                    .read<FamilyBloc>()
-                    .add(FamilyAddMemberRequested(email: controller.text));
-                Navigator.of(context).pop();
+                final email = controller.text.trim();
+                if (email.isNotEmpty) {
+                  context
+                      .read<FamilyBloc>()
+                      .add(FamilyAddMemberRequested(email: email));
+                  Navigator.of(context).pop();
+
+                  // Отображение плашки с уведомлением
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Приглашение отправлено'),
+                      duration: const Duration(seconds: 3),
+                    ),
+                  );
+                } else {
+                  // Отображение ошибки, если поле пустое
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Введите email участника'),
+                      duration: Duration(seconds: 3),
+                    ),
+                  );
+                }
               },
               child: const Text('Добавить'),
             ),

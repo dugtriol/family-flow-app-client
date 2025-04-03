@@ -12,12 +12,16 @@ class ProfileInitial extends ProfileState {}
 
 /// Состояние, когда данные профиля успешно загружены
 class ProfileLoadSuccess extends ProfileState {
-  const ProfileLoadSuccess({required this.user});
+  const ProfileLoadSuccess({
+    required this.user,
+    this.familyName,
+  });
 
   final User user;
+  final String? familyName;
 
   @override
-  List<Object?> get props => [user];
+  List<Object?> get props => [user, familyName];
 }
 
 /// Состояние, когда произошла ошибка при загрузке профиля

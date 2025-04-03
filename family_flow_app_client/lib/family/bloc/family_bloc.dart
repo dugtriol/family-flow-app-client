@@ -22,29 +22,29 @@ class FamilyBloc extends Bloc<FamilyEvent, FamilyState> {
 
   final FamilyRepository _familyRepository;
 
-  Future<void> _onFamilyRequested(
-    FamilyRequested event,
-    Emitter<FamilyState> emit,
-  ) async {
-    emit(FamilyLoading());
-    try {
-      final user = await _familyRepository.getCurrentUser();
-      if (user.familyId.isEmpty) {
-        emit(FamilyNoFamily());
+Future<void> _onFamilyRequested(
+  FamilyRequested event,
+  Emitter<FamilyState> emit,
+) async {
+  emit(FamilyLoading());
+  try {
+    final user = await _familyRepository.getCurrentUser();
+    if (user.familyId.isEmpty) {
+      emit(FamilyNoFamily());
+    } else {
+      final family = await _familyRepository.getFamilyById(user.familyId);
+      final members = await _familyRepository.fetchFamilyMembers(user.familyId);
+
+      if (members.isEmpty) {
+        emit(FamilyNoMembers(familyName: family.name));
       } else {
-        final members =
-            await _familyRepository.fetchFamilyMembers(user.familyId);
-        print("--------------------------------------\n\n $members\n\n");
-        if (members.isEmpty) {
-          emit(FamilyNoMembers()); // Отправляем состояние, если список пуст
-        } else {
-          emit(FamilyLoadSuccess(members: members));
-        }
+        emit(FamilyLoadSuccess(familyName: family.name, members: members));
       }
-    } catch (e) {
-      emit(FamilyLoadFailure(error: e.toString()));
     }
+  } catch (e) {
+    emit(FamilyLoadFailure(error: e.toString()));
   }
+}
 
   Future<void> _onFamilyCreateRequested(
     FamilyCreateRequested event,

@@ -20,7 +20,9 @@ class ProfilePage extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (_) => ProfileBloc(authenticationBloc: authenticationBloc)
+          create: (_) => ProfileBloc(
+              authenticationBloc: authenticationBloc,
+              familyRepository: familyRepository)
             ..add(ProfileRequested()),
         ),
         // BlocProvider(
@@ -61,7 +63,7 @@ class ProfilePage extends StatelessWidget {
                               const SizedBox(height: 4),
                               Text(
                                 user.familyId.isNotEmpty
-                                    ? 'Семья: есть'
+                                    ? 'Семья: ${state.familyName ?? 'Загрузка...'}'
                                     : 'Семья: отсутствует',
                                 style: const TextStyle(
                                   fontSize: 16,

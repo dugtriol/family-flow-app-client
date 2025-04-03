@@ -100,6 +100,36 @@ class FamilyApiClient {
     }
   }
 
+  /// Method to get family by ID
+  Future<Family> getFamilyById(String familyId, String token) async {
+    print('getFamilyById called with familyId: $familyId');
+    final uri = Uri.parse('$_baseUrl/family/$familyId');
+    print('Constructed URI: $uri');
+
+    final response = await _httpClient.get(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+    print('Response received with status code: ${response.statusCode}');
+
+    if (response.statusCode != 200) {
+      print('Failed to get family by ID. Response body: ${response.body}');
+      throw Exception('Failed to get family by ID: ${response.body}');
+    }
+
+    try {
+      final responseData = jsonDecode(response.body) as Map<String, dynamic>;
+      print('Response data: $responseData');
+      return Family.fromJson(responseData);
+    } catch (e) {
+      print('Failed to parse family data: $e');
+      throw Exception('Failed to parse family data: $e');
+    }
+  }
+
   void close() {
     _httpClient.close();
   }
