@@ -11,8 +11,17 @@ class TodoInitial extends TodoState {}
 
 class TodoLoading extends TodoState {}
 
-class TodoLoadSuccess extends TodoState {
-  const TodoLoadSuccess(this.todos);
+class TodoAssignedToLoadSuccess extends TodoState {
+  const TodoAssignedToLoadSuccess(this.todos);
+
+  final List<TodoItem> todos;
+
+  @override
+  List<Object> get props => [todos];
+}
+
+class TodoCreatedByLoadSuccess extends TodoState {
+  const TodoCreatedByLoadSuccess(this.todos);
 
   final List<TodoItem> todos;
 

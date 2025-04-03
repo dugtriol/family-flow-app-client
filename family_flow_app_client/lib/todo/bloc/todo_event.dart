@@ -26,3 +26,56 @@ class TodoCreateRequested extends TodoEvent {
   @override
   List<Object> get props => [title, description, assignedTo, deadline];
 }
+
+class TodoUpdateCompleteRequested extends TodoEvent {
+  const TodoUpdateCompleteRequested({
+    required this.id,
+    required this.title,
+    required this.description,
+    required this.status,
+    required this.deadline,
+    required this.assignedTo,
+  });
+
+  final String id;
+  final String title;
+  final String description;
+  final String status;
+  final DateTime deadline;
+  final String assignedTo;
+
+  @override
+  List<Object> get props =>
+      [id, title, description, status, deadline, assignedTo];
+}
+
+class TodoUpdateRequested extends TodoEvent {
+  const TodoUpdateRequested({
+    required this.id,
+    required this.title,
+    required this.description,
+    required this.status,
+    required this.deadline,
+    required this.assignedTo,
+  });
+
+  final String id;
+  final String title;
+  final String description;
+  final String status;
+  final DateTime deadline;
+  final String assignedTo;
+
+  @override
+  List<Object> get props =>
+      [id, title, description, status, deadline, assignedTo];
+}
+
+class TodoDeleteRequested extends TodoEvent {
+  const TodoDeleteRequested({required this.id});
+
+  final String id;
+
+  @override
+  List<Object> get props => [id];
+}

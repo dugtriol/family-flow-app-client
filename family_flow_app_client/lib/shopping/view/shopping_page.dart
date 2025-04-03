@@ -25,17 +25,17 @@ class ShoppingView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Shopping List'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              context.read<ShoppingBloc>().add(ShoppingListRequested());
-            },
-          ),
-        ],
-      ),
+      // appBar: AppBar(
+      //   title: const Text('Shopping List'),
+      //   actions: [
+      //     IconButton(
+      //       icon: const Icon(Icons.refresh),
+      //       onPressed: () {
+      //         context.read<ShoppingBloc>().add(ShoppingListRequested());
+      //       },
+      //     ),
+      //   ],
+      // ),
       body: Column(
         children: [
           Padding(

@@ -103,5 +103,77 @@ class TodoRepository {
     }
   }
 
+  /// Обновление задачи
+  Future<String> updateTodo({
+    required String id,
+    required String title,
+    required String description,
+    required String status,
+    required String assignedTo,
+    required DateTime deadline,
+  }) async {
+    try {
+      print('Starting to update todo with ID: $id...');
+      final token = await _getJwtToken();
+      if (token == null) {
+        print('JWT token is missing');
+        throw Exception('JWT token is missing');
+      }
+
+      if (_familyId == null) {
+        print('Family ID is missing');
+        throw Exception('Family ID is missing');
+      }
+
+      final todoUpdateInput = InputTodoUpdate(
+        title: title,
+        description: description,
+        status: status,
+        deadline: deadline,
+        assignedTo: assignedTo,
+      );
+      print('InputTodoUpdate prepared: $todoUpdateInput');
+
+      final updatedTodoId =
+          await _todoApiClient.updateTodo(id, todoUpdateInput, token);
+      print('Todo updated successfully with ID: $updatedTodoId');
+
+      final updatedTodos = await fetchTodosAssignedToCurrentUser();
+      print('Updated todos fetched: $updatedTodos');
+      _controller.add(updatedTodos);
+
+      return updatedTodoId;
+    } catch (e) {
+      print('Failed to update todo: $e');
+      throw Exception('Failed to update todo');
+    }
+  }
+
+  /// Удаление задачи
+  Future<String> deleteTodo({
+    required String id,
+  }) async {
+    try {
+      print('Starting to delete todo with ID: $id...');
+      final token = await _getJwtToken();
+      if (token == null) {
+        print('JWT token is missing');
+        throw Exception('JWT token is missing');
+      }
+
+      final deletedTodoId = await _todoApiClient.deleteTodo(id, token);
+      print('Todo deleted successfully with ID: $deletedTodoId');
+
+      final updatedTodos = await fetchTodosAssignedToCurrentUser();
+      print('Updated todos fetched: $updatedTodos');
+      _controller.add(updatedTodos);
+
+      return deletedTodoId;
+    } catch (e) {
+      print('Failed to delete todo: $e');
+      throw Exception('Failed to delete todo');
+    }
+  }
+
   void dispose() => _controller.close();
 }

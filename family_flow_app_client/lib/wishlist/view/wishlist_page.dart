@@ -7,18 +7,10 @@ class WishlistPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Добавляем событие для обновления данных при открытии экрана
+    context.read<WishlistBloc>().add(WishlistRequested());
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Wishlist'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              context.read<WishlistBloc>().add(WishlistRequested());
-            },
-          ),
-        ],
-      ),
       body: BlocBuilder<WishlistBloc, WishlistState>(
         builder: (context, state) {
           if (state is WishlistLoading) {
