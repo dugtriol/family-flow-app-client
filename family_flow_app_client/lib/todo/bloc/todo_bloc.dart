@@ -8,8 +8,8 @@ part 'todo_state.dart';
 
 class TodoBloc extends Bloc<TodoEvent, TodoState> {
   TodoBloc({required TodoRepository todoRepository})
-      : _todoRepository = todoRepository,
-        super(TodoInitial()) {
+    : _todoRepository = todoRepository,
+      super(TodoInitial()) {
     on<TodoAssignedToRequested>(_onAssignedToRequested);
     on<TodoCreatedByRequested>(_onCreatedByRequested);
     on<TodoCreateRequested>(_onCreateRequested);
@@ -21,10 +21,13 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
   final TodoRepository _todoRepository;
 
   Future<void> _onAssignedToRequested(
-      TodoAssignedToRequested event, Emitter<TodoState> emit) async {
+    TodoAssignedToRequested event,
+    Emitter<TodoState> emit,
+  ) async {
     emit(TodoLoading());
     try {
       final todos = await _todoRepository.fetchTodosAssignedToCurrentUser();
+
       emit(TodoAssignedToLoadSuccess(todos));
     } catch (_) {
       emit(TodoLoadFailure());
@@ -32,18 +35,24 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
   }
 
   Future<void> _onCreatedByRequested(
-      TodoCreatedByRequested event, Emitter<TodoState> emit) async {
+    TodoCreatedByRequested event,
+    Emitter<TodoState> emit,
+  ) async {
     emit(TodoLoading());
     try {
       final todos = await _todoRepository.fetchTodosCreatedByCurrentUser();
+      print('Созданные мной задачи: $todos'); // Отладочный вывод
       emit(TodoCreatedByLoadSuccess(todos));
-    } catch (_) {
+    } catch (error) {
+      print('Ошибка загрузки созданных задач: $error'); // Отладочный вывод
       emit(TodoLoadFailure());
     }
   }
 
   Future<void> _onCreateRequested(
-      TodoCreateRequested event, Emitter<TodoState> emit) async {
+    TodoCreateRequested event,
+    Emitter<TodoState> emit,
+  ) async {
     try {
       emit(TodoLoading());
       await _todoRepository.createTodo(
@@ -52,15 +61,18 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
         assignedTo: event.assignedTo,
         deadline: event.deadline,
       );
-      final todos = await _todoRepository.fetchTodosAssignedToCurrentUser();
-      emit(TodoAssignedToLoadSuccess(todos));
+      // Обновляем список задач
+      await _onAssignedToRequested(TodoAssignedToRequested(), emit);
+      await _onCreatedByRequested(TodoCreatedByRequested(), emit);
     } catch (_) {
       emit(TodoLoadFailure());
     }
   }
 
   Future<void> _onUpdateCompleteRequested(
-      TodoUpdateCompleteRequested event, Emitter<TodoState> emit) async {
+    TodoUpdateCompleteRequested event,
+    Emitter<TodoState> emit,
+  ) async {
     try {
       emit(TodoLoading());
       await _todoRepository.updateTodo(
@@ -71,15 +83,17 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
         assignedTo: event.assignedTo,
         deadline: event.deadline,
       );
-      final todos = await _todoRepository.fetchTodosAssignedToCurrentUser();
-      emit(TodoAssignedToLoadSuccess(todos));
+      // Обновляем список задач
+      await _onAssignedToRequested(TodoAssignedToRequested(), emit);
     } catch (_) {
       emit(TodoLoadFailure());
     }
   }
 
   Future<void> _onUpdateRequested(
-      TodoUpdateRequested event, Emitter<TodoState> emit) async {
+    TodoUpdateRequested event,
+    Emitter<TodoState> emit,
+  ) async {
     try {
       emit(TodoLoading());
       await _todoRepository.updateTodo(
@@ -90,20 +104,22 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
         assignedTo: event.assignedTo,
         deadline: event.deadline,
       );
-      final todos = await _todoRepository.fetchTodosAssignedToCurrentUser();
-      emit(TodoAssignedToLoadSuccess(todos));
+      // Обновляем список задач
+      await _onAssignedToRequested(TodoAssignedToRequested(), emit);
     } catch (_) {
       emit(TodoLoadFailure());
     }
   }
 
   Future<void> _onDeleteRequested(
-      TodoDeleteRequested event, Emitter<TodoState> emit) async {
+    TodoDeleteRequested event,
+    Emitter<TodoState> emit,
+  ) async {
     try {
       emit(TodoLoading());
       await _todoRepository.deleteTodo(id: event.id);
-      final todos = await _todoRepository.fetchTodosAssignedToCurrentUser();
-      emit(TodoAssignedToLoadSuccess(todos));
+      // Обновляем список задач
+      await _onAssignedToRequested(TodoAssignedToRequested(), emit);
     } catch (_) {
       emit(TodoLoadFailure());
     }

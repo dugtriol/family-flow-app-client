@@ -1,11 +1,10 @@
-import 'package:family_flow_app_client/todo/view/widgets/todo_list_views.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart'; // Для форматирования даты
-import 'package:todo_repository/todo_repository.dart';
+import 'package:table_calendar/table_calendar.dart';
+import '../../authentication/authentication.dart';
 import '../bloc/todo_bloc.dart';
-import 'widgets/todo_detail_dialog.dart';
-import 'widgets/widgets.dart';
+import 'widgets/todo_list_views.dart';
+import 'widgets/create_todo_button.dart';
 
 class TodoPage extends StatelessWidget {
   const TodoPage({super.key});
@@ -23,180 +22,196 @@ class TodoView extends StatefulWidget {
   State<TodoView> createState() => _TodoViewState();
 }
 
-class _TodoViewState extends State<TodoView>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _TodoViewState extends State<TodoView> {
+  String _selectedView = 'Назначенные мне'; // Выбранный список
+  bool _isCalendarVisible = false; // Флаг для отображения календаря
+  DateTime _focusedDay = DateTime.now(); // Текущая дата
+  DateTime? _selectedDay; // Выбранная дата
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-
-    // Слушаем изменения вкладок
-    _tabController.addListener(() {
-      if (_tabController.index == 0) {
-        context.read<TodoBloc>().add(TodoAssignedToRequested());
-      } else if (_tabController.index == 1) {
-        context.read<TodoBloc>().add(TodoCreatedByRequested());
-      }
-    });
-
-    // Загружаем данные для первой вкладки
-    context.read<TodoBloc>().add(TodoAssignedToRequested());
+    if (_selectedView == 'Назначенные мне') {
+      context.read<TodoBloc>().add(TodoAssignedToRequested());
+    } else if (_selectedView == 'Созданные мной') {
+      context.read<TodoBloc>().add(TodoCreatedByRequested());
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider.value(
-      value: context.read<TodoBloc>(), // Передаем текущий TodoBloc
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Todos'),
-          bottom: TabBar(
-            controller: _tabController,
-            tabs: const [
-              Tab(text: 'Assigned To'),
-              Tab(text: 'Created By'),
-            ],
-          ),
-        ),
-        body: TabBarView(
-          controller: _tabController,
-          children: const [
-            AssignedToListView(),
-            CreatedByListView(),
+    final currentUserId = context.select(
+      (AuthenticationBloc bloc) => bloc.state.user.id,
+    );
+
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: Row(
+          children: [
+            const Icon(
+              Icons.check_circle_outline,
+              color: Colors.deepPurple,
+              size: 28,
+            ),
+            const SizedBox(width: 8),
+            const Text(
+              'Задачи',
+              style: TextStyle(
+                color: Colors.black87,
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ],
         ),
-        floatingActionButton: const CreateTodoButton(),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications, color: Colors.deepPurple),
+            onPressed: () {
+              // Логика для уведомлений
+            },
+          ),
+        ],
       ),
+      backgroundColor: Colors.white, // Устанавливаем цвет фона как у AppBar
+      body: RefreshIndicator(
+        onRefresh: () async {
+          // Обновляем данные в зависимости от выбранного списка
+          if (_selectedView == 'Назначенные мне') {
+            context.read<TodoBloc>().add(TodoAssignedToRequested());
+          } else if (_selectedView == 'Созданные мной') {
+            context.read<TodoBloc>().add(TodoCreatedByRequested());
+          }
+        },
+        child: Column(
+          children: [
+            // Кнопки календаря, фильтра и переключатель списков
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  DropdownButton<String>(
+                    value: _selectedView,
+                    items: const [
+                      DropdownMenuItem(
+                        value: 'Назначенные мне',
+                        child: Text('Назначенные мне'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'Созданные мной',
+                        child: Text('Созданные мной'),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedView = value!;
+                      });
+
+                      // Вызываем соответствующее событие в зависимости от выбранного значения
+                      if (_selectedView == 'Назначенные мне') {
+                        context.read<TodoBloc>().add(TodoAssignedToRequested());
+                      } else if (_selectedView == 'Созданные мной') {
+                        context.read<TodoBloc>().add(TodoCreatedByRequested());
+                      }
+                    },
+                  ),
+                  Row(
+                    children: [
+                      IconButton(
+                        onPressed: () {
+                          setState(() {
+                            _isCalendarVisible = !_isCalendarVisible;
+                          });
+                        },
+                        icon: const Icon(
+                          Icons.calendar_today,
+                          color: Colors.deepPurple,
+                        ),
+                        tooltip: 'Календарь', // Подсказка при наведении
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          // Логика для фильтрации задач
+                        },
+                        icon: const Icon(
+                          Icons.filter_list,
+                          color: Colors.deepPurple,
+                        ),
+                        tooltip: 'Фильтр', // Подсказка при наведении
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            // Календарь
+            AnimatedSwitcher(
+              duration: const Duration(
+                milliseconds: 300,
+              ), // Длительность анимации
+              transitionBuilder: (child, animation) {
+                return SizeTransition(
+                  sizeFactor: animation,
+                  axisAlignment: -1.0, // Анимация сверху вниз
+                  child: child,
+                );
+              },
+              child:
+                  _isCalendarVisible
+                      ? _buildCalendar() // Календарь отображается плавно
+                      : const SizedBox.shrink(), // Пустое место, если календарь скрыт
+            ),
+            // Список задач
+            Expanded(
+              child:
+                  _selectedView == 'Назначенные мне'
+                      ? const AssignedToListView()
+                      : const CreatedByListView(),
+            ),
+          ],
+        ),
+      ),
+      floatingActionButton: CreateTodoButton(currentUserId: currentUserId),
     );
   }
 
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
+  Widget _buildCalendar() {
+    return TableCalendar(
+      locale: 'ru_RU', // Устанавливаем русский язык
+      firstDay: DateTime.utc(2000, 1, 1),
+      lastDay: DateTime.utc(2100, 12, 31),
+      focusedDay: _focusedDay,
+      selectedDayPredicate: (day) {
+        return isSameDay(_selectedDay, day);
+      },
+      onDaySelected: (selectedDay, focusedDay) {
+        setState(() {
+          _selectedDay = selectedDay;
+          _focusedDay = focusedDay;
+        });
+      },
+      calendarStyle: const CalendarStyle(
+        todayDecoration: BoxDecoration(
+          color: Colors.deepPurple,
+          shape: BoxShape.circle,
+        ),
+        selectedDecoration: BoxDecoration(
+          color: Colors.green,
+          shape: BoxShape.circle,
+        ),
+        markerDecoration: BoxDecoration(
+          color: Colors.red,
+          shape: BoxShape.circle,
+        ),
+        outsideDaysVisible: false,
+      ),
+      headerStyle: const HeaderStyle(
+        formatButtonVisible: false,
+        titleCentered: true,
+      ),
+    );
   }
 }
-
-// class _TodoListView extends StatelessWidget {
-//   const _TodoListView({required this.onRefresh, super.key});
-
-//   final VoidCallback onRefresh;
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return BlocBuilder<TodoBloc, TodoState>(
-//       builder: (context, state) {
-//         if (state is TodoLoading) {
-//           return const Center(child: CircularProgressIndicator());
-//         } else if (state is TodoLoadSuccess) {
-//           if (state.todos.isEmpty) {
-//             return const Center(child: Text('No todos found.'));
-//           }
-//           return ListView.builder(
-//             itemCount: state.todos.length,
-//             itemBuilder: (context, index) {
-//               final todo = state.todos[index];
-//               final tileColor = _getTileColor(todo.status);
-//               final formattedDate = _formatDate(todo.deadline);
-
-//               return Container(
-//                 margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-//                 padding:
-//                     const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-//                 decoration: BoxDecoration(
-//                   color: tileColor,
-//                   borderRadius: BorderRadius.circular(8),
-//                   boxShadow: [
-//                     BoxShadow(
-//                       color: Colors.black.withOpacity(0.1),
-//                       blurRadius: 4,
-//                       offset: const Offset(0, 2),
-//                     ),
-//                   ],
-//                 ),
-//                 child: ListTile(
-//                   contentPadding: EdgeInsets.zero,
-//                   leading: Icon(
-//                     todo.status.toLowerCase() == 'completed'
-//                         ? Icons.check_circle
-//                         : Icons.radio_button_unchecked,
-//                     color: todo.status.toLowerCase() == 'completed'
-//                         ? Colors.green
-//                         : Colors.blue,
-//                     size: 32,
-//                   ),
-//                   title: Text(
-//                     todo.title,
-//                     style: const TextStyle(
-//                       fontWeight: FontWeight.bold,
-//                       fontSize: 16,
-//                     ),
-//                   ),
-//                   subtitle: Column(
-//                     crossAxisAlignment: CrossAxisAlignment.start,
-//                     children: [
-//                       Text(
-//                         todo.description,
-//                         style: const TextStyle(
-//                             fontSize: 14, color: Colors.black87),
-//                         maxLines: 2,
-//                         overflow: TextOverflow.ellipsis,
-//                       ),
-//                       const SizedBox(height: 4),
-//                       Text(
-//                         'Статус: ${todo.status}',
-//                         style: const TextStyle(
-//                           fontSize: 12,
-//                           fontWeight: FontWeight.bold,
-//                           color: Colors.black54,
-//                         ),
-//                       ),
-//                     ],
-//                   ),
-//                   trailing: Text(
-//                     formattedDate,
-//                     style: const TextStyle(
-//                       fontSize: 12,
-//                       fontWeight: FontWeight.bold,
-//                       color: Colors.black54,
-//                     ),
-//                   ),
-//                   onTap: () {
-//                     // Открываем диалог с подробной информацией о задаче
-//                     showDialog(
-//                       context: context,
-//                       builder: (context) => TodoDetailsDialog(
-//                         todo: todo,
-//                       ),
-//                     );
-//                   },
-//                 ),
-//               );
-//             },
-//           );
-//         } else if (state is TodoLoadFailure) {
-//           return const Center(child: Text('Failed to load todos.'));
-//         }
-//         return const Center(child: Text('Press refresh to load todos.'));
-//       },
-//     );
-//   }
-
-//   Color _getTileColor(String status) {
-//     switch (status.toLowerCase()) {
-//       case 'completed':
-//         return Colors.green.withOpacity(0.1); // Светло-зеленый для Completed
-//       case 'active':
-//         return Colors.blue.withOpacity(0.1); // Светло-синий для Active
-//       default:
-//         return Colors.grey.withOpacity(0.1); // Серый для неизвестного статуса
-//     }
-//   }
-
-//   String _formatDate(DateTime date) {
-//     final formatter = DateFormat('d MMM', 'ru');
-//     return formatter.format(date);
-//   }
-// }

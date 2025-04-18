@@ -4,10 +4,7 @@ import '../../bloc/todo_bloc.dart';
 import 'package:todo_api/todo_api.dart';
 
 class TodoEditDialog extends StatefulWidget {
-  const TodoEditDialog({
-    super.key,
-    required this.todo,
-  });
+  const TodoEditDialog({super.key, required this.todo});
 
   final TodoItem todo;
 
@@ -24,8 +21,9 @@ class _TodoEditDialogState extends State<TodoEditDialog> {
   void initState() {
     super.initState();
     _titleController = TextEditingController(text: widget.todo.title);
-    _descriptionController =
-        TextEditingController(text: widget.todo.description);
+    _descriptionController = TextEditingController(
+      text: widget.todo.description,
+    );
     _selectedDate = widget.todo.deadline;
   }
 
@@ -52,7 +50,7 @@ class _TodoEditDialogState extends State<TodoEditDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final todoBloc = context.read<TodoBloc>();
+    // final todoBloc = context.read<TodoBloc>();
 
     return AlertDialog(
       title: Row(
@@ -103,15 +101,13 @@ class _TodoEditDialogState extends State<TodoEditDialog> {
           onPressed: () {
             Navigator.of(context).pop(); // Закрыть диалог
           },
-          child: const Text(
-            'Cancel',
-            style: TextStyle(color: Colors.red),
-          ),
+          child: const Text('Cancel', style: TextStyle(color: Colors.red)),
         ),
         ElevatedButton(
           onPressed: () {
-            todoBloc.add(TodoDeleteRequested(
-                id: widget.todo.id)); // Отправляем событие удаления
+            context.read<TodoBloc>().add(
+              TodoDeleteRequested(id: widget.todo.id),
+            );
             Navigator.of(context).pop(); // Закрыть диалог
           },
           child: const Text('Delete'),
@@ -120,14 +116,16 @@ class _TodoEditDialogState extends State<TodoEditDialog> {
         ElevatedButton(
           onPressed: () {
             // Отправляем событие обновления задачи
-            todoBloc.add(TodoUpdateRequested(
-              id: widget.todo.id,
-              title: _titleController.text,
-              description: _descriptionController.text,
-              status: widget.todo.status,
-              deadline: _selectedDate,
-              assignedTo: widget.todo.assignedTo,
-            ));
+            context.read<TodoBloc>().add(
+              TodoUpdateRequested(
+                id: widget.todo.id,
+                title: _titleController.text,
+                description: _descriptionController.text,
+                status: widget.todo.status,
+                deadline: _selectedDate,
+                assignedTo: widget.todo.assignedTo,
+              ),
+            );
             Navigator.of(context).pop(); // Закрыть диалог
           },
           child: const Text('Save'),
