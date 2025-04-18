@@ -14,11 +14,11 @@ class RegistrationForm extends StatelessWidget {
     return BlocListener<RegisterBloc, RegisterState>(
       listener: (context, state) {
         if (state.status.isFailure) {
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(
-              const SnackBar(content: Text('Ошибка регистрации')),
-            );
+          // ScaffoldMessenger.of(context)
+          //   ..hideCurrentSnackBar()
+          //   ..showSnackBar(
+          //     const SnackBar(content: Text('Ошибка регистрации')),
+          //   );
         } else if (state.isCodeSent) {
           Navigator.of(context).push(
             MaterialPageRoute(

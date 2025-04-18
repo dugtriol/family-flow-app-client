@@ -43,11 +43,11 @@ class _VerificationPageState extends State<VerificationPage> {
               const SnackBar(content: Text('Успешная регистрация')),
             );
         } else {
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(
-              const SnackBar(content: Text('Ошибка регистрации')),
-            );
+          // ScaffoldMessenger.of(context)
+          //   ..hideCurrentSnackBar()
+          //   ..showSnackBar(
+          //     const SnackBar(content: Text('Ошибка регистрации')),
+          //   );
         }
       },
       child: Scaffold(
