@@ -4,7 +4,8 @@ publish_to: 'none'
 version: 0.1.0
 
 environment:
-  sdk: ^3.6.1
+  sdk: ">=3.7.0 <4.0.0"
+  flutter: ">=1.17.0"
 
 dependencies:
   flutter:
@@ -41,6 +42,11 @@ dependencies:
   wishlist_api:
     path: packages/wishlist_api
   intl: ^0.18.0
+  table_calendar: ^3.0.9
+  geolocator: ^9.0.2
+  location: ^5.0.0
+  yandex_mapkit: ^4.1.0
+  permission_handler: ^12.0.0+1
   
 
 dev_dependencies:
@@ -52,3 +58,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - lib/assets/user.png
