@@ -15,14 +15,16 @@ class ShoppingFetchFailure implements Exception {}
 
 class ShoppingApiClient {
   ShoppingApiClient({http.Client? httpClient})
-      : _httpClient = httpClient ?? http.Client();
+    : _httpClient = httpClient ?? http.Client();
 
   static const _baseUrl = 'http://localhost:8080/api';
   final http.Client _httpClient;
 
   /// Method to create a shopping item
   Future<String> createShoppingItem(
-      ShoppingCreateInput input, String token) async {
+    ShoppingCreateInput input,
+    String token,
+  ) async {
     final uri = Uri.parse('$_baseUrl/shopping');
     final jsonBody = jsonEncode(input.toJson());
 
@@ -39,12 +41,15 @@ class ShoppingApiClient {
       throw ShoppingCreateFailure();
     }
 
-    return jsonDecode(response.body) as String;
+    return jsonDecode(utf8.decode(response.bodyBytes)) as String;
   }
 
   /// Method to update a shopping item
   Future<void> updateShoppingItem(
-      String id, ShoppingUpdateInput input, String token) async {
+    String id,
+    ShoppingUpdateInput input,
+    String token,
+  ) async {
     final uri = Uri.parse('$_baseUrl/shopping/$id');
     final jsonBody = jsonEncode(input.toJson());
 
@@ -68,9 +73,7 @@ class ShoppingApiClient {
 
     final response = await _httpClient.delete(
       uri,
-      headers: {
-        'Authorization': 'Bearer $token',
-      },
+      headers: {'Authorization': 'Bearer $token'},
     );
 
     if (response.statusCode != 200) {
@@ -80,21 +83,25 @@ class ShoppingApiClient {
 
   /// Method to fetch public shopping items by family ID
   Future<List<ShoppingItem>> getPublicShoppingItems(
-      String familyId, String token) async {
+    String familyId,
+    String token,
+  ) async {
     final uri = Uri.parse('$_baseUrl/shopping/public?family_id=$familyId');
+    print('Fetching public shopping items for family ID: $familyId');
 
     final response = await _httpClient.get(
       uri,
-      headers: {
-        'Authorization': 'Bearer $token',
-      },
+      headers: {'Authorization': 'Bearer $token'},
     );
 
+    print('Response status code: ${response.statusCode}');
     if (response.statusCode != 200) {
+      print('Failed to fetch public shopping items. Throwing exception.');
       throw ShoppingFetchFailure();
     }
 
-    final responseBody = jsonDecode(response.body) as List;
+    final responseBody = jsonDecode(utf8.decode(response.bodyBytes)) as List;
+    print('Successfully fetched public shopping items: $responseBody');
     return responseBody.map((json) => ShoppingItem.fromJson(json)).toList();
   }
 
@@ -104,16 +111,14 @@ class ShoppingApiClient {
 
     final response = await _httpClient.get(
       uri,
-      headers: {
-        'Authorization': 'Bearer $token',
-      },
+      headers: {'Authorization': 'Bearer $token'},
     );
 
     if (response.statusCode != 200) {
       throw ShoppingFetchFailure();
     }
 
-    final responseBody = jsonDecode(response.body) as List;
+    final responseBody = jsonDecode(utf8.decode(response.bodyBytes)) as List;
     return responseBody.map((json) => ShoppingItem.fromJson(json)).toList();
   }
 

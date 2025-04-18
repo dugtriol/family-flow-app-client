@@ -38,7 +38,7 @@ class WishlistApiClient {
       throw WishlistCreateFailure();
     }
 
-    return jsonDecode(response.body) as String;
+    return jsonDecode(utf8.decode(response.bodyBytes)) as String;
   }
 
   /// Method to update a wishlist item
@@ -100,7 +100,7 @@ class WishlistApiClient {
       throw WishlistFetchFailure();
     }
 
-    final responseBody = jsonDecode(response.body) as List;
+    final responseBody = jsonDecode(utf8.decode(response.bodyBytes)) as List;
     print('Decoded response body: $responseBody');
 
     final wishlistItems =

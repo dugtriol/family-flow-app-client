@@ -7,7 +7,7 @@ class TodoCreateFailure implements Exception {}
 
 class TodoApiClient {
   TodoApiClient({http.Client? httpClient})
-      : _httpClient = httpClient ?? http.Client();
+    : _httpClient = httpClient ?? http.Client();
 
   static const _baseUrl = 'http://localhost:8080/api';
   final http.Client _httpClient;
@@ -38,12 +38,61 @@ class TodoApiClient {
       throw TodoCreateFailure();
     }
 
-    final responseBody = jsonDecode(response.body) as String;
+    final responseBody = jsonDecode(utf8.decode(response.bodyBytes)) as String;
     print('Todo created successfully: $responseBody');
     return responseBody;
   }
 
-  /// Method to get todos assigned to a specific user
+  // /// Method to get todos assigned to a specific user
+  // Future<List<TodoItem>> getTodosAssignedTo(String token) async {
+  //   final uri = Uri.parse('$_baseUrl/todo/assigned_to');
+  //   print('Constructed URI for getTodosAssignedTo: $uri');
+  //   print('Token: $token');
+
+  //   final response = await _httpClient.get(
+  //     uri,
+  //     headers: {'Authorization': 'Bearer $token'},
+  //   );
+  //   print('Response received with status code: ${response.statusCode}');
+
+  //   if (response.statusCode != 200) {
+  //     print('Response status code is not 200. Throwing Exception.');
+  //     print('Response body: ${response.body}');
+  //     throw Exception('Failed to fetch todos assigned to user');
+  //   }
+
+  //   final responseBody = jsonDecode(utf8.decode(response.bodyBytes)) as List;
+  //   print('getTodosAssignedTo - Todos fetched successfully: $responseBody');
+  //   return responseBody.map((json) => TodoItem.fromJson(json)).toList();
+  // }
+
+  // /// Method to get todos created by a specific user
+  // Future<List<TodoItem>> getTodosCreatedBy(String token) async {
+  //   final uri = Uri.parse('$_baseUrl/todo/created_by');
+  //   print('Constructed URI for getTodosCreatedBy: $uri');
+  //   print('Token: $token');
+
+  //   final response = await _httpClient.get(
+  //     uri,
+  //     headers: {'Authorization': 'Bearer $token'},
+  //   );
+  //   print(
+  //     'getTodosCreatedBy - Response received with status code: ${response.statusCode}',
+  //   );
+
+  //   if (response.statusCode != 200) {
+  //     print(
+  //       'getTodosCreatedBy - Response status code is not 200. Throwing Exception.',
+  //     );
+  //     print('getTodosCreatedBy - Response body: ${response.body}');
+  //     throw Exception('Failed to fetch todos created by user');
+  //   }
+  //   print('getTodosCreatedBy - Response body: ${response.body}');
+  //   final responseBody = jsonDecode(utf8.decode(response.bodyBytes)) as List;
+  //   print('getTodosCreatedBy - Todos fetched successfully: $responseBody');
+  //   return responseBody.map((json) => TodoItem.fromJson(json)).toList();
+  // }
+
   Future<List<TodoItem>> getTodosAssignedTo(String token) async {
     final uri = Uri.parse('$_baseUrl/todo/assigned_to');
     print('Constructed URI for getTodosAssignedTo: $uri');
@@ -51,9 +100,7 @@ class TodoApiClient {
 
     final response = await _httpClient.get(
       uri,
-      headers: {
-        'Authorization': 'Bearer $token',
-      },
+      headers: {'Authorization': 'Bearer $token'},
     );
     print('Response received with status code: ${response.statusCode}');
 
@@ -63,12 +110,18 @@ class TodoApiClient {
       throw Exception('Failed to fetch todos assigned to user');
     }
 
-    final responseBody = jsonDecode(response.body) as List;
-    print('Todos fetched successfully: $responseBody');
+    final responseBody = jsonDecode(utf8.decode(response.bodyBytes));
+    if (responseBody == null || responseBody is! List) {
+      print(
+        'API вернул null или некорректный формат. Возвращаем пустой список.',
+      );
+      return [];
+    }
+
+    print('getTodosAssignedTo - Todos fetched successfully: $responseBody');
     return responseBody.map((json) => TodoItem.fromJson(json)).toList();
   }
 
-  /// Method to get todos created by a specific user
   Future<List<TodoItem>> getTodosCreatedBy(String token) async {
     final uri = Uri.parse('$_baseUrl/todo/created_by');
     print('Constructed URI for getTodosCreatedBy: $uri');
@@ -76,20 +129,29 @@ class TodoApiClient {
 
     final response = await _httpClient.get(
       uri,
-      headers: {
-        'Authorization': 'Bearer $token',
-      },
+      headers: {'Authorization': 'Bearer $token'},
     );
-    print('Response received with status code: ${response.statusCode}');
+    print(
+      'getTodosCreatedBy - Response received with status code: ${response.statusCode}',
+    );
 
     if (response.statusCode != 200) {
-      print('Response status code is not 200. Throwing Exception.');
-      print('Response body: ${response.body}');
+      print(
+        'getTodosCreatedBy - Response status code is not 200. Throwing Exception.',
+      );
+      print('getTodosCreatedBy - Response body: ${response.body}');
       throw Exception('Failed to fetch todos created by user');
     }
 
-    final responseBody = jsonDecode(response.body) as List;
-    print('Todos fetched successfully: $responseBody');
+    final responseBody = jsonDecode(utf8.decode(response.bodyBytes));
+    if (responseBody == null || responseBody is! List) {
+      print(
+        'API вернул null или некорректный формат. Возвращаем пустой список.',
+      );
+      return [];
+    }
+
+    print('getTodosCreatedBy - Todos fetched successfully: $responseBody');
     return responseBody.map((json) => TodoItem.fromJson(json)).toList();
   }
 
@@ -123,7 +185,7 @@ class TodoApiClient {
       throw Exception('Failed to update todo');
     }
 
-    final responseBody = jsonDecode(response.body) as String;
+    final responseBody = jsonDecode(utf8.decode(response.bodyBytes)) as String;
     print('Todo updated successfully: $responseBody');
     return responseBody;
   }
@@ -136,9 +198,7 @@ class TodoApiClient {
 
     final response = await _httpClient.delete(
       uri,
-      headers: {
-        'Authorization': 'Bearer $token',
-      },
+      headers: {'Authorization': 'Bearer $token'},
     );
     print('Response received with status code: ${response.statusCode}');
 
@@ -148,7 +208,7 @@ class TodoApiClient {
       throw Exception('Failed to delete todo');
     }
 
-    final responseBody = jsonDecode(response.body) as String;
+    final responseBody = jsonDecode(utf8.decode(response.bodyBytes)) as String;
     print('Todo deleted successfully: $responseBody');
     return responseBody;
   }

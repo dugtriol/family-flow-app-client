@@ -30,7 +30,8 @@ class UserApiClient {
       throw UserFetchFailure();
     }
 
-    final responseBody = jsonDecode(response.body) as Map<String, dynamic>;
+    final responseBody =
+        jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
     print('Response body decoded: $responseBody');
     final user = UserGet.fromJson(responseBody);
     print('UserGet object created: $user');

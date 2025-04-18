@@ -4,7 +4,7 @@ import 'package:shopping_api/shopping_api.dart';
 
 class ShoppingRepository {
   ShoppingRepository({ShoppingApiClient? shoppingApiClient})
-      : _shoppingApiClient = shoppingApiClient ?? ShoppingApiClient();
+    : _shoppingApiClient = shoppingApiClient ?? ShoppingApiClient();
 
   final ShoppingApiClient _shoppingApiClient;
   final _publicController = StreamController<List<ShoppingItem>>();
@@ -48,16 +48,25 @@ class ShoppingRepository {
   /// Получение публичных элементов
   Future<List<ShoppingItem>> fetchPublicShoppingItems() async {
     try {
+      print('Fetching public shopping items...');
       final token = await _getJwtToken();
       if (token == null) {
+        print('JWT token is missing');
         throw Exception('JWT token is missing');
       }
 
       if (_familyId == null) {
+        print('Family ID is missing');
         throw Exception('Family ID is missing');
       }
 
-      return await _shoppingApiClient.getPublicShoppingItems(_familyId!, token);
+      print('Fetching public shopping items with Family ID: $_familyId');
+      final items = await _shoppingApiClient.getPublicShoppingItems(
+        _familyId!,
+        token,
+      );
+      print('Public shopping items fetched successfully: $items');
+      return items;
     } catch (e) {
       print('Failed to fetch public shopping items: $e');
       throw Exception('Failed to fetch public shopping items');
@@ -118,7 +127,9 @@ class ShoppingRepository {
       print('ShoppingCreateInput prepared: $shoppingCreateInput');
 
       final shoppingItemId = await _shoppingApiClient.createShoppingItem(
-          shoppingCreateInput, token);
+        shoppingCreateInput,
+        token,
+      );
       print('Shopping item created successfully with ID: $shoppingItemId');
 
       final updatedShoppingItems = await fetchPublicShoppingItems();
@@ -163,7 +174,10 @@ class ShoppingRepository {
       print('ShoppingUpdateInput prepared: $shoppingUpdateInput');
 
       await _shoppingApiClient.updateShoppingItem(
-          id, shoppingUpdateInput, token);
+        id,
+        shoppingUpdateInput,
+        token,
+      );
       print('Shopping item updated successfully');
 
       final updatedShoppingItems = await fetchPublicShoppingItems();

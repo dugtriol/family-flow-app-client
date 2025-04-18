@@ -4,7 +4,7 @@ import 'package:todo_api/todo_api.dart';
 
 class TodoRepository {
   TodoRepository({TodoApiClient? todoApiClient})
-      : _todoApiClient = todoApiClient ?? TodoApiClient();
+    : _todoApiClient = todoApiClient ?? TodoApiClient();
 
   final TodoApiClient _todoApiClient;
   final _controller = StreamController<List<TodoItem>>();
@@ -75,7 +75,40 @@ class TodoRepository {
     }
   }
 
-  /// Получение задач, назначенных текущему пользователю
+  // /// Получение задач, назначенных текущему пользователю
+  // Future<List<TodoItem>> fetchTodosAssignedToCurrentUser() async {
+  //   try {
+  //     final token = await _getJwtToken();
+  //     if (token == null) {
+  //       throw Exception('JWT token is missing');
+  //     }
+
+  //     return await _todoApiClient.getTodosAssignedTo(token);
+  //   } catch (_) {
+  //     throw Exception('Failed to fetch todos assigned to the current user');
+  //   }
+  // }
+
+  // /// Получение задач, созданных текущим пользователем
+  // Future<List<TodoItem>> fetchTodosCreatedByCurrentUser() async {
+  //   print('Fetching todos created by the current user...');
+  //   try {
+  //     final token = await _getJwtToken();
+  //     if (token == null) {
+  //       throw Exception('JWT token is missing');
+  //     }
+
+  //     final todos = await _todoApiClient.getTodosCreatedBy(token);
+  //     print('API вернул задачи, созданные мной: $todos'); // Отладочный вывод
+  //     // return await _todoApiClient.getTodosCreatedBy(token);
+  //     return todos;
+  //   } catch (error) {
+  //     throw Exception(
+  //       'Failed to fetch todos created by the current user $error',
+  //     );
+  //   }
+  // }
+
   Future<List<TodoItem>> fetchTodosAssignedToCurrentUser() async {
     try {
       final token = await _getJwtToken();
@@ -83,13 +116,17 @@ class TodoRepository {
         throw Exception('JWT token is missing');
       }
 
-      return await _todoApiClient.getTodosAssignedTo(token);
+      final todos = await _todoApiClient.getTodosAssignedTo(token);
+      if (todos.isEmpty) {
+        print('Нет задач, назначенных текущему пользователю.');
+      }
+      return todos;
     } catch (_) {
-      throw Exception('Failed to fetch todos assigned to the current user');
+      print('Ошибка при получении задач, назначенных текущему пользователю.');
+      return []; // Возвращаем пустой список
     }
   }
 
-  /// Получение задач, созданных текущим пользователем
   Future<List<TodoItem>> fetchTodosCreatedByCurrentUser() async {
     try {
       final token = await _getJwtToken();
@@ -97,9 +134,14 @@ class TodoRepository {
         throw Exception('JWT token is missing');
       }
 
-      return await _todoApiClient.getTodosCreatedBy(token);
+      final todos = await _todoApiClient.getTodosCreatedBy(token);
+      if (todos.isEmpty) {
+        print('Нет задач, созданных текущим пользователем.');
+      }
+      return todos;
     } catch (_) {
-      throw Exception('Failed to fetch todos created by the current user');
+      print('Ошибка при получении задач, созданных текущим пользователем.');
+      return []; // Возвращаем пустой список
     }
   }
 
@@ -134,8 +176,11 @@ class TodoRepository {
       );
       print('InputTodoUpdate prepared: $todoUpdateInput');
 
-      final updatedTodoId =
-          await _todoApiClient.updateTodo(id, todoUpdateInput, token);
+      final updatedTodoId = await _todoApiClient.updateTodo(
+        id,
+        todoUpdateInput,
+        token,
+      );
       print('Todo updated successfully with ID: $updatedTodoId');
 
       final updatedTodos = await fetchTodosAssignedToCurrentUser();
@@ -150,9 +195,7 @@ class TodoRepository {
   }
 
   /// Удаление задачи
-  Future<String> deleteTodo({
-    required String id,
-  }) async {
+  Future<String> deleteTodo({required String id}) async {
     try {
       print('Starting to delete todo with ID: $id...');
       final token = await _getJwtToken();

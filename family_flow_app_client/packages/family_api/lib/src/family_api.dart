@@ -89,7 +89,8 @@ class FamilyApiClient {
 
     try {
       // Парсим массив JSON
-      final responseData = jsonDecode(response.body) as List<dynamic>;
+      final responseData =
+          jsonDecode(utf8.decode(response.bodyBytes)) as List<dynamic>;
       final users = responseData
           .map((userJson) => User.fromJson(userJson as Map<String, dynamic>))
           .toList();
@@ -121,7 +122,8 @@ class FamilyApiClient {
     }
 
     try {
-      final responseData = jsonDecode(response.body) as Map<String, dynamic>;
+      final responseData =
+          jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
       print('Response data: $responseData');
       return Family.fromJson(responseData);
     } catch (e) {

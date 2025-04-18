@@ -25,7 +25,8 @@ class AuthApiClient {
       throw RegistrationFailure();
     }
 
-    final responseBody = jsonDecode(response.body) as Map<String, dynamic>;
+    final responseBody =
+        jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
     return Token.fromJson(responseBody);
   }
 
@@ -43,7 +44,8 @@ class AuthApiClient {
       throw LoginFailure();
     }
 
-    final responseBody = jsonDecode(response.body) as Map<String, dynamic>;
+    final responseBody =
+        jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
     print("responseBody: ");
     print(responseBody['token']);
 
