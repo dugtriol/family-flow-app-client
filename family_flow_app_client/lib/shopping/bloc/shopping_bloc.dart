@@ -8,8 +8,8 @@ part 'shopping_state.dart';
 
 class ShoppingBloc extends Bloc<ShoppingEvent, ShoppingState> {
   ShoppingBloc({required ShoppingRepository shoppingRepository})
-      : _shoppingRepository = shoppingRepository,
-        super(ShoppingInitial()) {
+    : _shoppingRepository = shoppingRepository,
+      super(ShoppingInitial()) {
     on<ShoppingListRequested>(_onListRequested);
     on<ShoppingItemCreateRequested>(_onItemCreateRequested);
     on<ShoppingTypeChanged>(_onTypeChanged); // Обработка переключения типа
@@ -18,19 +18,25 @@ class ShoppingBloc extends Bloc<ShoppingEvent, ShoppingState> {
   final ShoppingRepository _shoppingRepository;
 
   Future<void> _onListRequested(
-      ShoppingListRequested event, Emitter<ShoppingState> emit) async {
+    ShoppingListRequested event,
+    Emitter<ShoppingState> emit,
+  ) async {
     emit(ShoppingLoading());
     try {
+      print('Fetching public shopping items...');
       final items = await _shoppingRepository.fetchPublicShoppingItems();
-
+      print('Successfully fetched ${items.length} items.');
       emit(ShoppingLoadSuccess(items, true)); // По умолчанию public
-    } catch (_) {
+    } catch (error) {
+      print('Failed to fetch shopping items: $error');
       emit(ShoppingLoadFailure());
     }
   }
 
   Future<void> _onItemCreateRequested(
-      ShoppingItemCreateRequested event, Emitter<ShoppingState> emit) async {
+    ShoppingItemCreateRequested event,
+    Emitter<ShoppingState> emit,
+  ) async {
     try {
       emit(ShoppingLoading());
       await _shoppingRepository.createShoppingItem(
@@ -46,12 +52,15 @@ class ShoppingBloc extends Bloc<ShoppingEvent, ShoppingState> {
   }
 
   Future<void> _onTypeChanged(
-      ShoppingTypeChanged event, Emitter<ShoppingState> emit) async {
+    ShoppingTypeChanged event,
+    Emitter<ShoppingState> emit,
+  ) async {
     emit(ShoppingLoading());
     try {
-      final items = event.isPublic
-          ? await _shoppingRepository.fetchPublicShoppingItems()
-          : await _shoppingRepository.fetchPrivateShoppingItems();
+      final items =
+          event.isPublic
+              ? await _shoppingRepository.fetchPublicShoppingItems()
+              : await _shoppingRepository.fetchPrivateShoppingItems();
       emit(ShoppingLoadSuccess(items, event.isPublic));
     } catch (_) {
       emit(ShoppingLoadFailure());
