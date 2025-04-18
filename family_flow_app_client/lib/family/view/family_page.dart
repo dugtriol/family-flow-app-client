@@ -73,6 +73,36 @@ class FamilyPage extends StatelessWidget {
                       return ListTile(
                         title: Text(member.name),
                         subtitle: Text(member.email),
+                        trailing: PopupMenuButton<String>(
+                          onSelected: (value) {
+                            // Обработка выбранного действия
+                            if (value == 'Удалить') {
+                              // Заглушка для удаления
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Удалить ${member.name}'),
+                                ),
+                              );
+                            } else if (value == 'Изменить роль') {
+                              // Заглушка для изменения роли
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Изменить роль ${member.name}'),
+                                ),
+                              );
+                            }
+                          },
+                          itemBuilder: (context) => [
+                            const PopupMenuItem(
+                              value: 'Удалить',
+                              child: Text('Удалить'),
+                            ),
+                            const PopupMenuItem(
+                              value: 'Изменить роль',
+                              child: Text('Изменить роль'),
+                            ),
+                          ],
+                        ),
                       );
                     },
                   ),
@@ -88,6 +118,7 @@ class FamilyPage extends StatelessWidget {
         },
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'add_member_button',
         onPressed: () {
           _showAddMemberDialog(context);
         },
@@ -160,15 +191,45 @@ class FamilyPage extends StatelessWidget {
   }
 
   void _showAddMemberDialog(BuildContext context) {
-    final controller = TextEditingController();
+    final emailController = TextEditingController();
+    String selectedRole = 'Parent'; // Роль по умолчанию
+
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: const Text('Добавить участника'),
-          content: TextField(
-            controller: controller,
-            decoration: const InputDecoration(labelText: 'Email участника'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: emailController,
+                decoration: const InputDecoration(labelText: 'Email участника'),
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                value: selectedRole,
+                decoration: const InputDecoration(
+                  labelText: 'Роль участника',
+                  border: OutlineInputBorder(),
+                ),
+                items: const [
+                  DropdownMenuItem(
+                    value: 'Parent',
+                    child: Text('Родитель'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'Child',
+                    child: Text('Ребёнок'),
+                  ),
+                ],
+                onChanged: (value) {
+                  if (value != null) {
+                    selectedRole = value;
+                  }
+                },
+              ),
+            ],
           ),
           actions: [
             TextButton(
@@ -177,11 +238,14 @@ class FamilyPage extends StatelessWidget {
             ),
             ElevatedButton(
               onPressed: () {
-                final email = controller.text.trim();
+                final email = emailController.text.trim();
                 if (email.isNotEmpty) {
-                  context
-                      .read<FamilyBloc>()
-                      .add(FamilyAddMemberRequested(email: email));
+                  context.read<FamilyBloc>().add(
+                        FamilyAddMemberRequested(
+                          email: email,
+                          role: selectedRole,
+                        ),
+                      );
                   Navigator.of(context).pop();
 
                   // Отображение плашки с уведомлением
