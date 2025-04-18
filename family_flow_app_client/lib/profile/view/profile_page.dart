@@ -5,48 +5,85 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../authentication/authentication.dart';
+import '../../diary/diary.dart';
+import '../../notifications/notifications.dart';
+import 'profile_details_page.dart';
 
-import 'package:family_flow_app_client/family/bloc/family_bloc.dart';
-import 'package:family_repository/family_repository.dart';
-
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final authenticationBloc = context.read<AuthenticationBloc>();
-    final familyRepository = context.read<FamilyRepository>();
+  State<ProfilePage> createState() => _ProfilePageState();
+}
 
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(
-          create: (_) => ProfileBloc(
-              authenticationBloc: authenticationBloc,
-              familyRepository: familyRepository)
-            ..add(ProfileRequested()),
+class _ProfilePageState extends State<ProfilePage> {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Отправляем событие для обновления профиля
+    context.read<ProfileBloc>().add(ProfileRequested());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: Row(
+          children: [
+            // const Icon(Icons.person, color: Colors.deepPurple, size: 28),
+            // const SizedBox(width: 8),
+            // const Text(
+            //   'Профиль',
+            //   style: TextStyle(
+            //     color: Colors.black87,
+            //     fontSize: 20,
+            //     fontWeight: FontWeight.w600,
+            //   ),
+            // ),
+          ],
         ),
-        // BlocProvider(
-        //   create: (_) => FamilyBloc(familyRepository: familyRepository)
-        //     ..add(FamilyRequested()),
-        // ),
-      ],
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Профиль'),
-          centerTitle: true,
-        ),
-        body: BlocBuilder<ProfileBloc, ProfileState>(
-          builder: (context, state) {
-            if (state is ProfileLoadSuccess) {
-              final user = state.user;
-              return SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Аватар и информация о пользователе
-                      Row(
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings, color: Colors.deepPurple),
+            onPressed: () {
+              // Логика для открытия настроек
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const PlaceholderScreen(title: 'Настройки'),
+                ),
+              );
+            },
+            tooltip: 'Настройки',
+          ),
+        ],
+      ),
+      backgroundColor: Colors.white, // Устанавливаем цвет фона как у AppBar
+      body: BlocBuilder<ProfileBloc, ProfileState>(
+        builder: (context, state) {
+          if (state is ProfileLoadSuccess) {
+            final user = state.user;
+            return SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Аватар и информация о пользователе
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder:
+                                (_) => BlocProvider.value(
+                                  value: context.read<ProfileBloc>(),
+                                  child: const ProfileDetailsPage(),
+                                ),
+                          ),
+                        );
+                      },
+                      child: Row(
                         children: [
                           const ProfileAvatar(),
                           const SizedBox(width: 16),
@@ -58,6 +95,7 @@ class ProfilePage extends StatelessWidget {
                                 style: const TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
                                 ),
                               ),
                               const SizedBox(height: 4),
@@ -74,67 +112,95 @@ class ProfilePage extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 24),
+                    ),
+                    const SizedBox(height: 24),
+                    // Вкладки для перехода
+                    ProfileOption(
+                      icon: Icons.notifications,
+                      label: 'Уведомления',
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const NotificationsPage(),
+                          ),
+                        );
+                      },
+                    ),
+                    const Divider(),
+                    ProfileOption(
+                      icon: Icons.group,
+                      label: 'Семья',
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder:
+                                (_) => BlocProvider.value(
+                                  value: context.read<FamilyBloc>(),
+                                  child: const FamilyPage(),
+                                ),
+                          ),
+                        );
+                      },
+                    ),
+                    const Divider(),
+                    ProfileOption(
+                      icon: Icons.book,
+                      label: 'Дневник',
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder:
+                                (_) => BlocProvider(
+                                  create:
+                                      (_) => DiaryBloc()..add(DiaryRequested()),
+                                  child: const DiaryPage(),
+                                ),
+                          ),
+                        );
+                      },
+                    ),
+                    const Divider(),
+                    ProfileOption(
+                      icon: Icons.bar_chart,
+                      label: 'Статистика',
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder:
+                                (_) => const PlaceholderScreen(
+                                  title: 'Статистика',
+                                ),
+                          ),
+                        );
+                      },
+                    ),
+                    const Divider(),
 
-                      // Вкладки для перехода
-                      ProfileOption(
-                        icon: Icons.group,
-                        label: 'Семья',
-                        onTap: () {
-                          // Переход на экран семьи с передачей FamilyBloc
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => BlocProvider.value(
-                                value: context.read<FamilyBloc>(),
-                                child: const FamilyPage(),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                      const Divider(),
-                      ProfileOption(
-                        icon: Icons.book,
-                        label: 'Дневник',
-                        onTap: () {
-                          // Переход на экран дневника (заглушка)
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => const PlaceholderScreen(
-                                title: 'Дневник',
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                      const Divider(),
-
-                      // Кнопка "Выйти"
-                      ProfileOption(
-                        icon: Icons.logout,
-                        label: 'Выйти',
-                        onTap: () {
-                          context
-                              .read<ProfileBloc>()
-                              .add(ProfileLogoutRequested());
-                        },
-                        isDestructive: true,
-                      ),
-                    ],
-                  ),
+                    // Кнопка "Выйти"
+                    ProfileOption(
+                      icon: Icons.logout,
+                      label: 'Выйти',
+                      onTap: () {
+                        context.read<ProfileBloc>().add(
+                          ProfileLogoutRequested(),
+                        );
+                      },
+                      isDestructive: true,
+                    ),
+                  ],
                 ),
-              );
-            } else if (state is ProfileLoadFailure) {
-              return Center(
-                child: Text(
-                  'Не удалось загрузить профиль: ${state.error}',
-                  style: const TextStyle(color: Colors.red),
-                ),
-              );
-            }
-            return const Center(child: CircularProgressIndicator());
-          },
-        ),
+              ),
+            );
+          } else if (state is ProfileLoadFailure) {
+            return Center(
+              child: Text(
+                'Не удалось загрузить профиль: ${state.error}',
+                style: const TextStyle(color: Colors.red),
+              ),
+            );
+          }
+          return const Center(child: CircularProgressIndicator());
+        },
       ),
     );
   }
@@ -148,11 +214,7 @@ class ProfileAvatar extends StatelessWidget {
     return const CircleAvatar(
       radius: 40,
       backgroundColor: Colors.blueAccent,
-      child: Icon(
-        Icons.person,
-        size: 40,
-        color: Colors.white,
-      ),
+      child: Icon(Icons.person, size: 40, color: Colors.white),
     );
   }
 }
@@ -176,14 +238,14 @@ class ProfileOption extends StatelessWidget {
     return ListTile(
       leading: Icon(
         icon,
-        color: isDestructive ? Colors.red : Theme.of(context).iconTheme.color,
+        color: isDestructive ? Colors.red : Colors.deepPurple,
       ),
       title: Text(
         label,
         style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w500,
-          color: isDestructive ? Colors.red : Colors.black,
+          color: isDestructive ? Colors.red : Colors.black87,
         ),
       ),
       onTap: onTap,
@@ -199,9 +261,7 @@ class PlaceholderScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(title),
-      ),
+      appBar: AppBar(title: Text(title)),
       body: Center(
         child: Text(
           'Экран "$title" в разработке',
