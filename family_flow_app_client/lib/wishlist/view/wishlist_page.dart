@@ -34,6 +34,11 @@ class _WishlistPageState extends State<WishlistPage> {
     // );
   }
 
+  Future<void> _refreshWishlist() async {
+    // Отправляем событие для обновления списка желаний
+    context.read<WishlistBloc>().add(WishlistRequested());
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -65,91 +70,130 @@ class _WishlistPageState extends State<WishlistPage> {
             ),
           ),
           Expanded(
-            child: BlocBuilder<WishlistBloc, WishlistState>(
-              builder: (context, state) {
-                if (state is WishlistLoading) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (state is WishlistLoadSuccess) {
-                  if (state.items.isEmpty) {
-                    return const Center(
-                      child: Text(
-                        'Список желаний пуст.',
-                        style: TextStyle(fontSize: 16, color: Colors.black54),
-                      ),
-                    );
-                  }
-                  return ListView.builder(
-                    itemCount: state.items.length,
-                    itemBuilder: (context, index) {
-                      final item = state.items[index];
-                      final currentUserId =
-                          context.read<AuthenticationBloc>().state.user?.id;
-                      final isOwner = item.createdBy == currentUserId;
-
-                      return GestureDetector(
-                        onTap: () {
-                          // Открываем диалог с подробной информацией
-                          showDialog(
-                            context: context,
-                            builder: (dialogContext) {
-                              return WishlistDetailsDialog(
-                                item: item,
-                                isOwner: isOwner,
-                              );
-                            },
-                          );
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          child: ListTile(
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                            ),
-                            leading: Icon(
-                              item.isReserved
-                                  ? Icons.check_circle
-                                  : Icons.radio_button_unchecked,
-                              color:
-                                  item.isReserved
-                                      ? Colors.green
-                                      : Colors.deepPurple,
-                              size: 24,
-                            ),
-                            title: Text(
-                              item.name,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w500,
-                                fontSize: 14,
-                                color: Colors.black87,
+            child: RefreshIndicator(
+              onRefresh: _refreshWishlist,
+              child: BlocBuilder<WishlistBloc, WishlistState>(
+                builder: (context, state) {
+                  if (state is WishlistLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (state is WishlistLoadSuccess) {
+                    if (state.items.isEmpty) {
+                      return ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: const [
+                          Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(16.0),
+                              child: Text(
+                                'Список желаний пуст.\nПотяните вниз, чтобы обновить список.',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.black54,
+                                ),
+                                textAlign: TextAlign.center,
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
                             ),
-                            trailing: const Icon(
-                              Icons.arrow_forward_ios,
-                              color: Colors.deepPurple,
-                              size: 14,
+                          ),
+                        ],
+                      );
+                    }
+                    return ListView.builder(
+                      itemCount: state.items.length,
+                      itemBuilder: (context, index) {
+                        final item = state.items[index];
+                        final currentUserId =
+                            context.read<AuthenticationBloc>().state.user?.id;
+                        final isOwner = item.createdBy == currentUserId;
+
+                        return GestureDetector(
+                          onTap: () {
+                            // Открываем диалог с подробной информацией
+                            showDialog(
+                              context: context,
+                              builder: (dialogContext) {
+                                return WishlistDetailsDialog(
+                                  item: item,
+                                  isOwner: isOwner,
+                                );
+                              },
+                            );
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                              leading: Icon(
+                                item.isReserved
+                                    ? Icons.check_circle
+                                    : Icons.radio_button_unchecked,
+                                color:
+                                    item.isReserved
+                                        ? Colors.green
+                                        : Colors.deepPurple,
+                                size: 24,
+                              ),
+                              title: Text(
+                                item.name,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 14,
+                                  color: Colors.black87,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              trailing: const Icon(
+                                Icons.arrow_forward_ios,
+                                color: Colors.deepPurple,
+                                size: 14,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  } else if (state is WishlistLoadFailure) {
+                    return ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: [
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Text(
+                              'Не удалось загрузить список желаний.\nПотяните вниз, чтобы обновить список.',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                color: Colors.red,
+                              ),
+                              textAlign: TextAlign.center,
                             ),
                           ),
                         ),
-                      );
-                    },
+                      ],
+                    );
+                  }
+                  return ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    children: const [
+                      Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: Text(
+                            'Потяните вниз, чтобы обновить список.',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.black54,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                    ],
                   );
-                } else if (state is WishlistLoadFailure) {
-                  return const Center(
-                    child: Text(
-                      'Не удалось загрузить список желаний.',
-                      style: TextStyle(fontSize: 16, color: Colors.red),
-                    ),
-                  );
-                }
-                return const Center(
-                  child: Text(
-                    'Потяните вниз, чтобы обновить список.',
-                    style: TextStyle(fontSize: 16, color: Colors.black54),
-                  ),
-                );
-              },
+                },
+              ),
             ),
           ),
         ],

@@ -100,9 +100,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                user.familyId.isNotEmpty
-                                    ? 'Семья: ${state.familyName ?? 'Загрузка...'}'
-                                    : 'Семья: отсутствует',
+                                user.email,
                                 style: const TextStyle(
                                   fontSize: 16,
                                   color: Colors.grey,
