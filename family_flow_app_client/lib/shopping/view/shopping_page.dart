@@ -126,45 +126,62 @@ class ShoppingView extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                             ),
                             trailing: TextButton.icon(
-                              onPressed: () {
-                                // context.read<ShoppingBloc>().add(
-                                //       ShoppingItemReserveRequested(
-                                //         itemId: item.id,
-                                //         reservedBy: currentUserId!,
-                                //       ),
-                                //     );
-                              },
+                              onPressed:
+                                  item.status == 'Active'
+                                      ? () {
+                                        context.read<ShoppingBloc>().add(
+                                          ShoppingItemStatusUpdated(
+                                            id: item.id,
+                                            title: item.title,
+                                            description: item.description,
+                                            status: 'Completed',
+                                            visibility: item.visibility,
+                                          ),
+                                        );
+                                      }
+                                      : null,
                               icon: Icon(
-                                item.status == 'Reserved'
+                                item.status == 'Completed'
                                     ? Icons.check_circle
+                                    : item.status == 'Reserved'
+                                    ? Icons.lock
                                     : Icons.add_shopping_cart,
                                 color:
-                                    item.status == 'Reserved'
+                                    item.status == 'Completed'
                                         ? Colors.green
+                                        : item.status == 'Reserved'
+                                        ? Colors.orange
                                         : Colors.deepPurple,
                               ),
                               label: Text(
-                                item.status == 'Reserved'
+                                item.status == 'Completed'
+                                    ? 'Куплено'
+                                    : item.status == 'Reserved'
                                     ? 'Зарезервировано'
                                     : 'Куплю',
                                 style: TextStyle(
                                   color:
-                                      item.status == 'Reserved'
+                                      item.status == 'Completed'
                                           ? Colors.green
+                                          : item.status == 'Reserved'
+                                          ? Colors.orange
                                           : Colors.deepPurple,
                                 ),
                               ),
                             ),
                             onTap: () {
-                              // Открываем диалог с подробной информацией
-                              showDialog(
-                                context: context,
-                                builder: (dialogContext) {
-                                  return ShoppingDetailsDialog(
-                                    item: item,
-                                    isOwner: isOwner,
-                                  );
-                                },
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder:
+                                      (_) => BlocProvider.value(
+                                        value: context.read<ShoppingBloc>(),
+                                        child: ShoppingDetailsPage(
+                                          item: item,
+                                          isOwner: isOwner,
+                                          currentUser: currentUserId!,
+                                        ),
+                                      ),
+                                ),
                               );
                             },
                           ),

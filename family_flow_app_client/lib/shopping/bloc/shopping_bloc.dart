@@ -13,6 +13,7 @@ class ShoppingBloc extends Bloc<ShoppingEvent, ShoppingState> {
     on<ShoppingListRequested>(_onListRequested);
     on<ShoppingItemCreateRequested>(_onItemCreateRequested);
     on<ShoppingTypeChanged>(_onTypeChanged); // Обработка переключения типа
+    on<ShoppingItemStatusUpdated>(_onItemStatusUpdated);
   }
 
   final ShoppingRepository _shoppingRepository;
@@ -63,6 +64,27 @@ class ShoppingBloc extends Bloc<ShoppingEvent, ShoppingState> {
               : await _shoppingRepository.fetchPrivateShoppingItems();
       emit(ShoppingLoadSuccess(items, event.isPublic));
     } catch (_) {
+      emit(ShoppingLoadFailure());
+    }
+  }
+
+  Future<void> _onItemStatusUpdated(
+    ShoppingItemStatusUpdated event,
+    Emitter<ShoppingState> emit,
+  ) async {
+    try {
+      emit(ShoppingLoading());
+      await _shoppingRepository.updateShoppingItem(
+        id: event.id,
+        title: event.title,
+        description: event.description,
+        status: event.status,
+        visibility: event.visibility,
+      );
+      final items = await _shoppingRepository.fetchPublicShoppingItems();
+      emit(ShoppingLoadSuccess(items, true));
+    } catch (error) {
+      print('Failed to update shopping item: $error');
       emit(ShoppingLoadFailure());
     }
   }

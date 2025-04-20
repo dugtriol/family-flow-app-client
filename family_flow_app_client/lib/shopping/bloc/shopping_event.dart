@@ -32,3 +32,22 @@ class ShoppingTypeChanged extends ShoppingEvent {
   @override
   List<Object> get props => [isPublic];
 }
+
+class ShoppingItemStatusUpdated extends ShoppingEvent {
+  final String id;
+  final String title;
+  final String description;
+  final String status;
+  final String visibility;
+
+  const ShoppingItemStatusUpdated({
+    required this.id,
+    required this.title,
+    required this.description,
+    required this.status,
+    required this.visibility,
+  });
+
+  @override
+  List<Object> get props => [id, title, description, status, visibility];
+}
