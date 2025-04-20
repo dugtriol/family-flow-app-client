@@ -165,13 +165,18 @@ class ShoppingRepository {
       }
 
       final shoppingUpdateInput = ShoppingUpdateInput(
-        id: id,
+        // id: id,
         title: title,
         description: description,
         status: status,
         visibility: visibility,
       );
       print('ShoppingUpdateInput prepared: $shoppingUpdateInput');
+
+      print('Title: ${shoppingUpdateInput.title}');
+      print('Description: ${shoppingUpdateInput.description}');
+      print('Status: ${shoppingUpdateInput.status}');
+      print('Visibility: ${shoppingUpdateInput.visibility}');
 
       await _shoppingApiClient.updateShoppingItem(
         id,

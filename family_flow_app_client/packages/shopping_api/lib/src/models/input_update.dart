@@ -5,14 +5,14 @@ part 'input_update.g.dart';
 
 @JsonSerializable()
 class ShoppingUpdateInput {
-  final String id;
+  // final String id;
   final String title;
   final String description;
   final String status;
   final String visibility;
 
   ShoppingUpdateInput({
-    required this.id,
+    // required this.id,
     required this.title,
     required this.description,
     required this.status,

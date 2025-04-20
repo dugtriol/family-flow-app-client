@@ -8,7 +8,7 @@ part of 'input_update.dart';
 
 ShoppingUpdateInput _$ShoppingUpdateInputFromJson(Map<String, dynamic> json) =>
     ShoppingUpdateInput(
-      id: json['id'] as String,
+      // id: json['id'] as String,
       title: json['title'] as String,
       description: json['description'] as String,
       status: json['status'] as String,
@@ -16,11 +16,11 @@ ShoppingUpdateInput _$ShoppingUpdateInputFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$ShoppingUpdateInputToJson(
-        ShoppingUpdateInput instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'title': instance.title,
-      'description': instance.description,
-      'status': instance.status,
-      'visibility': instance.visibility,
-    };
+  ShoppingUpdateInput instance,
+) => <String, dynamic>{
+  // 'id': instance.id,
+  'title': instance.title,
+  'description': instance.description,
+  'status': instance.status,
+  'visibility': instance.visibility,
+};
