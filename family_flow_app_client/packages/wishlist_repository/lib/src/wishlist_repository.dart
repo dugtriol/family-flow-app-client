@@ -4,7 +4,7 @@ import 'package:wishlist_api/wishlist_api.dart';
 
 class WishlistRepository {
   WishlistRepository({WishlistApiClient? wishlistApiClient})
-      : _wishlistApiClient = wishlistApiClient ?? WishlistApiClient();
+    : _wishlistApiClient = wishlistApiClient ?? WishlistApiClient();
 
   final WishlistApiClient _wishlistApiClient;
   final _wishlistController = StreamController<List<WishlistItem>>();
@@ -48,7 +48,9 @@ class WishlistRepository {
       print('Wishlist items fetched successfully: $items');
       return items;
     } catch (e) {
-      print('Failed to fetch wishlist items: $e');
+      print(
+        'WishlistRepository - fetchWishlistItems - Failed to fetch wishlist items: $e',
+      );
       throw Exception('Failed to fetch wishlist items');
     }
   }
@@ -75,7 +77,9 @@ class WishlistRepository {
       print('WishlistCreateInput prepared: $wishlistCreateInput');
 
       final wishlistItemId = await _wishlistApiClient.createWishlistItem(
-          wishlistCreateInput, token);
+        wishlistCreateInput,
+        token,
+      );
       print('Wishlist item created successfully with ID: $wishlistItemId');
 
       final updatedWishlistItems = await fetchWishlistItems();
@@ -111,12 +115,15 @@ class WishlistRepository {
         description: description,
         link: link,
         status: status,
-        isReserved: isReserved,
+        isArchived: isReserved,
       );
       print('WishlistUpdateInput prepared: $wishlistUpdateInput');
 
       await _wishlistApiClient.updateWishlistItem(
-          id, wishlistUpdateInput, token);
+        id,
+        wishlistUpdateInput,
+        token,
+      );
       print('Wishlist item updated successfully');
 
       final updatedWishlistItems = await fetchWishlistItems();
@@ -147,6 +154,53 @@ class WishlistRepository {
     } catch (e) {
       print('Failed to delete wishlist item: $e');
       throw WishlistDeleteFailure();
+    }
+  }
+
+  /// Получение архивированных элементов списка желаний
+  Future<List<WishlistItem>> fetchArchivedWishlistItems() async {
+    try {
+      print('Fetching archived wishlist items...');
+      final token = await _getJwtToken();
+      if (token == null) {
+        print('JWT token is missing');
+        throw Exception('JWT token is missing');
+      }
+      print('JWT token retrieved: $token');
+
+      final archivedItems = await _wishlistApiClient.getArchivedByUserID(token);
+      print('Archived wishlist items fetched successfully: $archivedItems');
+      return archivedItems;
+    } catch (e) {
+      print(
+        'WishlistRepository - fetchArchivedWishlistItems - Failed to fetch archived wishlist items: $e',
+      );
+      throw Exception('Failed to fetch archived wishlist items');
+    }
+  }
+
+  /// Обновление поля reservedBy элемента списка желаний
+  Future<void> updateReservedBy({
+    required String id,
+    required String reservedBy,
+  }) async {
+    try {
+      print('Starting to update reservedBy field of a wishlist item...');
+      final token = await _getJwtToken();
+      if (token == null) {
+        print('JWT token is missing');
+        throw Exception('JWT token is missing');
+      }
+
+      await _wishlistApiClient.updateReservedBy(id, reservedBy, token);
+      print('ReservedBy field updated successfully');
+
+      final updatedWishlistItems = await fetchWishlistItems();
+      print('Updated wishlist items fetched: $updatedWishlistItems');
+      _wishlistController.add(updatedWishlistItems);
+    } catch (e) {
+      print('Failed to update reservedBy field: $e');
+      throw WishlistUpdateFailure();
     }
   }
 

@@ -10,12 +10,16 @@ class WishlistItem extends Equatable {
   final String description;
   final String link;
   final String status;
-  @JsonKey(name: 'is_reserved')
-  final bool isReserved;
   @JsonKey(name: 'created_by')
   final String createdBy;
+  @JsonKey(name: 'reserved_by')
+  final Map<String, dynamic> reservedBy;
+  @JsonKey(name: 'is_archived')
+  final bool isArchived;
   @JsonKey(name: 'created_at')
   final DateTime createdAt;
+  @JsonKey(name: 'updated_at')
+  final DateTime updatedAt;
 
   const WishlistItem({
     required this.id,
@@ -23,9 +27,11 @@ class WishlistItem extends Equatable {
     required this.description,
     required this.link,
     required this.status,
-    required this.isReserved,
     required this.createdBy,
+    required this.reservedBy,
+    required this.isArchived,
     required this.createdAt,
+    required this.updatedAt,
   });
 
   factory WishlistItem.fromJson(Map<String, dynamic> json) =>
@@ -35,13 +41,15 @@ class WishlistItem extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        name,
-        description,
-        link,
-        status,
-        isReserved,
-        createdBy,
-        createdAt,
-      ];
+    id,
+    name,
+    description,
+    link,
+    status,
+    createdBy,
+    reservedBy,
+    isArchived,
+    createdAt,
+    updatedAt,
+  ];
 }

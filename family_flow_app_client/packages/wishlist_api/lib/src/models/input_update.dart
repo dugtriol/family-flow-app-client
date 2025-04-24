@@ -8,15 +8,15 @@ class WishlistUpdateInput {
   final String description;
   final String link;
   final String status;
-  @JsonKey(name: 'is_reserved')
-  final bool isReserved;
+  @JsonKey(name: 'is_archived')
+  final bool isArchived;
 
   WishlistUpdateInput({
     required this.name,
     required this.description,
     required this.link,
     required this.status,
-    required this.isReserved,
+    required this.isArchived,
   });
 
   factory WishlistUpdateInput.fromJson(Map<String, dynamic> json) =>

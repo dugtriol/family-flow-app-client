@@ -14,9 +14,9 @@ WishlistCreateInput _$WishlistCreateInputFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$WishlistCreateInputToJson(
-        WishlistCreateInput instance) =>
-    <String, dynamic>{
-      'name': instance.name,
-      'description': instance.description,
-      'link': instance.link,
-    };
+  WishlistCreateInput instance,
+) => <String, dynamic>{
+  'name': instance.name,
+  'description': instance.description,
+  'link': instance.link,
+};

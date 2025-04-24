@@ -12,15 +12,15 @@ WishlistUpdateInput _$WishlistUpdateInputFromJson(Map<String, dynamic> json) =>
       description: json['description'] as String,
       link: json['link'] as String,
       status: json['status'] as String,
-      isReserved: json['is_reserved'] as bool,
+      isArchived: json['is_archived'] as bool,
     );
 
 Map<String, dynamic> _$WishlistUpdateInputToJson(
-        WishlistUpdateInput instance) =>
-    <String, dynamic>{
-      'name': instance.name,
-      'description': instance.description,
-      'link': instance.link,
-      'status': instance.status,
-      'is_reserved': instance.isReserved,
-    };
+  WishlistUpdateInput instance,
+) => <String, dynamic>{
+  'name': instance.name,
+  'description': instance.description,
+  'link': instance.link,
+  'status': instance.status,
+  'is_archived': instance.isArchived,
+};
