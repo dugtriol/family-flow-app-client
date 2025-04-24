@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shopping_repository/shopping_repository.dart';
 import '../../authentication/authentication.dart';
+import '../../family/family.dart';
 import '../bloc/shopping_bloc.dart';
 import 'create_shopping_button.dart';
 import 'widgets/widgets.dart';
@@ -14,11 +15,13 @@ class ShoppingPage extends StatelessWidget {
     final shoppingRepository = RepositoryProvider.of<ShoppingRepository>(
       context,
     );
+    final familyBloc = context.read<FamilyBloc>();
     return BlocProvider(
       create:
-          (context) =>
-              ShoppingBloc(shoppingRepository: shoppingRepository)
-                ..add(ShoppingListRequested()),
+          (context) => ShoppingBloc(
+            shoppingRepository: shoppingRepository,
+            familyBloc: familyBloc,
+          )..add(ShoppingListRequested()),
       child: const ShoppingView(),
     );
   }
@@ -115,58 +118,182 @@ class ShoppingView extends StatelessWidget {
                             contentPadding: const EdgeInsets.symmetric(
                               horizontal: 16,
                             ),
-                            title: Text(
-                              item.title,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w500,
-                                fontSize: 14,
-                                color: Colors.black87,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            trailing: TextButton.icon(
-                              onPressed:
-                                  item.status == 'Active'
-                                      ? () {
-                                        context.read<ShoppingBloc>().add(
-                                          ShoppingItemStatusUpdated(
-                                            id: item.id,
-                                            title: item.title,
-                                            description: item.description,
-                                            status: 'Completed',
-                                            visibility: item.visibility,
-                                          ),
-                                        );
-                                      }
-                                      : null,
-                              icon: Icon(
-                                item.status == 'Completed'
-                                    ? Icons.check_circle
-                                    : item.status == 'Reserved'
-                                    ? Icons.lock
-                                    : Icons.add_shopping_cart,
-                                color:
-                                    item.status == 'Completed'
-                                        ? Colors.green
-                                        : item.status == 'Reserved'
-                                        ? Colors.orange
-                                        : Colors.deepPurple,
-                              ),
-                              label: Text(
-                                item.status == 'Completed'
-                                    ? 'Куплено'
-                                    : item.status == 'Reserved'
-                                    ? 'Зарезервировано'
-                                    : 'Куплю',
-                                style: TextStyle(
-                                  color:
-                                      item.status == 'Completed'
-                                          ? Colors.green
-                                          : item.status == 'Reserved'
-                                          ? Colors.orange
-                                          : Colors.deepPurple,
+                            title: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    item.title,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 14,
+                                      color: Colors.black87,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
+                                // Отображение статуса
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: _getStatusColor(item.status),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    _getStatusText(item.status),
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            // title: Text(
+                            //   item.title,
+                            //   style: const TextStyle(
+                            //     fontWeight: FontWeight.w500,
+                            //     fontSize: 14,
+                            //     color: Colors.black87,
+                            //   ),
+                            //   maxLines: 1,
+                            //   overflow: TextOverflow.ellipsis,
+                            // ),
+                            // trailing: TextButton.icon(
+                            //   onPressed:
+                            //       item.status == 'Active'
+                            //           ? () {
+                            //             context.read<ShoppingBloc>().add(
+                            //               ShoppingItemStatusUpdated(
+                            //                 id: item.id,
+                            //                 title: item.title,
+                            //                 description: item.description,
+                            //                 status: 'Completed',
+                            //                 visibility: item.visibility,
+                            //                 isArchived: false,
+                            //               ),
+                            //             );
+                            //           }
+                            //           : null,
+                            //   icon: Icon(
+                            //     item.status == 'Completed'
+                            //         ? Icons.check_circle
+                            //         : item.status == 'Reserved'
+                            //         ? Icons.lock
+                            //         : Icons.add_shopping_cart,
+                            //     color:
+                            //         item.status == 'Completed'
+                            //             ? Colors.green
+                            //             : item.status == 'Reserved'
+                            //             ? Colors.orange
+                            //             : Colors.deepPurple,
+                            //   ),
+                            //   label: Text(
+                            //     item.status == 'Completed'
+                            //         ? 'Куплено'
+                            //         : item.status == 'Reserved'
+                            //         ? 'Зарезервировано'
+                            //         : 'Куплю',
+                            //     style: TextStyle(
+                            //       color:
+                            //           item.status == 'Completed'
+                            //               ? Colors.green
+                            //               : item.status == 'Reserved'
+                            //               ? Colors.orange
+                            //               : Colors.deepPurple,
+                            //     ),
+                            //   ),
+                            // ),
+                            trailing: PopupMenuButton<String>(
+                              onSelected: (value) {
+                                if (value == 'Купить') {
+                                  if (currentUserId != null) {
+                                    context.read<ShoppingBloc>().add(
+                                      ShoppingItemBought(
+                                        id: item.id,
+                                        buyerId: currentUserId,
+                                      ),
+                                    );
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Не удалось получить ID пользователя',
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                } else if (value == 'Добавить в архив') {
+                                  context.read<ShoppingBloc>().add(
+                                    ShoppingItemStatusUpdated(
+                                      id: item.id,
+                                      title: item.title,
+                                      description: item.description,
+                                      status: item.status,
+                                      visibility: item.visibility,
+                                      isArchived: true,
+                                    ),
+                                  );
+                                } else if (value == 'Зарезервировать') {
+                                  if (currentUserId != null) {
+                                    context.read<ShoppingBloc>().add(
+                                      ShoppingItemReserved(
+                                        id: item.id,
+                                        reservedBy: currentUserId,
+                                      ),
+                                    );
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Не удалось получить ID пользователя',
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                } else if (value == 'Отменить резервирование') {
+                                  context.read<ShoppingBloc>().add(
+                                    ShoppingItemReservationCancelled(
+                                      id: item.id,
+                                    ),
+                                  );
+                                }
+                              },
+                              itemBuilder:
+                                  (context) => [
+                                    if (item.status == 'Active' ||
+                                        (item.createdBy == currentUserId &&
+                                            item.status == 'Reserved'))
+                                      const PopupMenuItem(
+                                        value: 'Купить',
+                                        child: Text('Купить'),
+                                      ),
+                                    const PopupMenuItem(
+                                      value: 'Добавить в архив',
+                                      child: Text('Добавить в архив'),
+                                    ),
+                                    if (item.reservedBy.entries.first.value ==
+                                            '' &&
+                                        item.status == 'Active')
+                                      const PopupMenuItem(
+                                        value: 'Зарезервировать',
+                                        child: Text('Зарезервировать'),
+                                      ),
+                                    if (item.reservedBy.entries.first.value ==
+                                            currentUserId &&
+                                        item.status == 'Reserved')
+                                      const PopupMenuItem(
+                                        value: 'Отменить резервирование',
+                                        child: Text('Отменить резервирование'),
+                                      ),
+                                  ],
+                              icon: const Icon(
+                                Icons.more_vert,
+                                color: Colors.black54,
                               ),
                             ),
                             onTap: () {
@@ -210,5 +337,29 @@ class ShoppingView extends StatelessWidget {
       ),
       floatingActionButton: const CreateShoppingButton(),
     );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case 'Completed':
+        return Colors.green;
+      case 'Reserved':
+        return Colors.orange;
+      case 'Active':
+      default:
+        return Colors.deepPurple;
+    }
+  }
+
+  String _getStatusText(String status) {
+    switch (status) {
+      case 'Completed':
+        return 'Куплено';
+      case 'Reserved':
+        return 'Зарезервировано';
+      case 'Active':
+      default:
+        return 'Активно';
+    }
   }
 }

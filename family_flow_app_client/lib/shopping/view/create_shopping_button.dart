@@ -365,7 +365,9 @@ class CreateShoppingButton extends StatelessWidget {
                                 ? () {
                                   final title = titleController.text;
                                   final description =
-                                      descriptionController.text;
+                                      descriptionController.text.isEmpty
+                                          ? ''
+                                          : descriptionController.text;
 
                                   // Отправляем событие для создания элемента покупок
                                   parentContext.read<ShoppingBloc>().add(

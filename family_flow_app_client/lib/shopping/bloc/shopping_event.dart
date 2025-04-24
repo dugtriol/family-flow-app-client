@@ -39,6 +39,7 @@ class ShoppingItemStatusUpdated extends ShoppingEvent {
   final String description;
   final String status;
   final String visibility;
+  final bool isArchived;
 
   const ShoppingItemStatusUpdated({
     required this.id,
@@ -46,8 +47,54 @@ class ShoppingItemStatusUpdated extends ShoppingEvent {
     required this.description,
     required this.status,
     required this.visibility,
+    required this.isArchived,
   });
 
   @override
-  List<Object> get props => [id, title, description, status, visibility];
+  List<Object> get props => [
+    id,
+    title,
+    description,
+    status,
+    visibility,
+    isArchived,
+  ];
+}
+
+class ShoppingItemDeleted extends ShoppingEvent {
+  final String id;
+
+  const ShoppingItemDeleted({required this.id});
+
+  @override
+  List<Object> get props => [id];
+}
+
+class ShoppingItemReserved extends ShoppingEvent {
+  final String id;
+  final String reservedBy;
+
+  ShoppingItemReserved({required this.id, required this.reservedBy});
+
+  @override
+  List<Object> get props => [id, reservedBy];
+}
+
+class ShoppingItemBought extends ShoppingEvent {
+  final String id;
+  final String buyerId;
+
+  const ShoppingItemBought({required this.id, required this.buyerId});
+
+  @override
+  List<Object> get props => [id, buyerId];
+}
+
+class ShoppingItemReservationCancelled extends ShoppingEvent {
+  final String id;
+
+  const ShoppingItemReservationCancelled({required this.id});
+
+  @override
+  List<Object> get props => [id];
 }
