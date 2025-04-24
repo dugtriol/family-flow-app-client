@@ -6,7 +6,7 @@ class UserFetchFailure implements Exception {}
 
 class UserApiClient {
   UserApiClient({http.Client? httpClient})
-      : _httpClient = httpClient ?? http.Client();
+    : _httpClient = httpClient ?? http.Client();
 
   static const _baseUrl = 'http://localhost:8080/api';
   final http.Client _httpClient;
@@ -36,6 +36,41 @@ class UserApiClient {
     final user = UserGet.fromJson(responseBody);
     print('UserGet object created: $user');
     return user;
+  }
+
+  Future<void> updateUser(String token, UserUpdateInput input) async {
+    final uri = Uri.parse('$_baseUrl/user');
+    final response = await _httpClient.put(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(input.toJson()),
+    );
+
+    if (response.statusCode != 200) {
+      throw UserFetchFailure();
+    }
+  }
+
+  Future<void> updatePassword(
+    String token,
+    UserUpdatePasswordInput input,
+  ) async {
+    final uri = Uri.parse('$_baseUrl/user/password');
+    final response = await _httpClient.put(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(input.toJson()),
+    );
+
+    if (response.statusCode != 200) {
+      throw UserFetchFailure();
+    }
   }
 
   void close() {

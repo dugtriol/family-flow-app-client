@@ -5,7 +5,7 @@ import 'package:user_repository/src/models/models.dart';
 
 class UserRepository {
   UserRepository({UserApiClient? userApiClient})
-      : _userApiClient = userApiClient ?? UserApiClient();
+    : _userApiClient = userApiClient ?? UserApiClient();
 
   final UserApiClient _userApiClient;
   User? _user;
@@ -51,6 +51,39 @@ class UserRepository {
         const Duration(milliseconds: 300),
         () => _user = User.empty,
       );
+    }
+  }
+
+  /// Update user information
+  Future<void> updateUser(UserUpdateInput input) async {
+    final token = await _getJwtToken();
+    if (token == null) {
+      throw Exception('Token not found');
+    }
+
+    try {
+      await _userApiClient.updateUser(token, input);
+    } catch (e) {
+      print("updateUser - error: $e");
+      rethrow;
+    }
+  }
+
+  /// Update user password
+  Future<void> updatePassword(String password) async {
+    final token = await _getJwtToken();
+    if (token == null) {
+      throw Exception('Token not found');
+    }
+
+    try {
+      await _userApiClient.updatePassword(
+        token,
+        UserUpdatePasswordInput(password: password),
+      );
+    } catch (e) {
+      print("updatePassword - error: $e");
+      rethrow;
     }
   }
 }
