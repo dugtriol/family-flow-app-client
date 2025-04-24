@@ -7,8 +7,8 @@ class FamilyRepository {
   FamilyRepository({
     FamilyApiClient? familyApiClient,
     required UserRepository userRepository,
-  })  : _familyApiClient = familyApiClient ?? FamilyApiClient(),
-        _userRepository = userRepository;
+  }) : _familyApiClient = familyApiClient ?? FamilyApiClient(),
+       _userRepository = userRepository;
 
   final FamilyApiClient _familyApiClient;
   final UserRepository _userRepository;
@@ -101,6 +101,26 @@ class FamilyRepository {
     } catch (e) {
       print('Failed to fetch family members: $e');
       throw Exception('Failed to fetch family members');
+    }
+  }
+
+  /// Удаление участника из семьи
+  Future<void> removeMemberFromFamily(String memberId, String familyId) async {
+    try {
+      final token = await _getJwtToken();
+      if (token == null) {
+        throw Exception('JWT token is missing');
+      }
+
+      await _familyApiClient.resetFamilyId(
+        ResetFamilyIdInput(id: memberId, familyId: familyId),
+        token,
+      );
+      // final user = await getCurrentUser();
+      _controller.add(await fetchFamilyMembers(familyId));
+    } catch (e) {
+      print('Failed to remove member from family: $e');
+      throw Exception('Failed to remove member from family');
     }
   }
 

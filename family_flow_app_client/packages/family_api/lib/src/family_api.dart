@@ -8,7 +8,7 @@ class FamilyCreateFailure implements Exception {}
 
 class FamilyApiClient {
   FamilyApiClient({http.Client? httpClient})
-      : _httpClient = httpClient ?? http.Client();
+    : _httpClient = httpClient ?? http.Client();
 
   static const _baseUrl = 'http://localhost:8080/api';
   final http.Client _httpClient;
@@ -44,7 +44,9 @@ class FamilyApiClient {
 
   /// Method to add a member to a family
   Future<void> addMemberToFamily(
-      InputAddMemberToFamily input, String token) async {
+    InputAddMemberToFamily input,
+    String token,
+  ) async {
     final uri = Uri.parse('$_baseUrl/family/add');
     final jsonBody = jsonEncode(input.toJson());
 
@@ -64,7 +66,9 @@ class FamilyApiClient {
 
   /// Method to get members of a family
   Future<OutputGetMembers> getFamilyMembers(
-      InputGetMembers input, String token) async {
+    InputGetMembers input,
+    String token,
+  ) async {
     final uri = Uri.parse('$_baseUrl/family/members');
     final jsonBody = jsonEncode(input.toJson());
 
@@ -91,9 +95,12 @@ class FamilyApiClient {
       // Парсим массив JSON
       final responseData =
           jsonDecode(utf8.decode(response.bodyBytes)) as List<dynamic>;
-      final users = responseData
-          .map((userJson) => User.fromJson(userJson as Map<String, dynamic>))
-          .toList();
+      final users =
+          responseData
+              .map(
+                (userJson) => User.fromJson(userJson as Map<String, dynamic>),
+              )
+              .toList();
       return OutputGetMembers(users: users);
     } catch (e) {
       print('Failed to parse response body: $e');
@@ -129,6 +136,25 @@ class FamilyApiClient {
     } catch (e) {
       print('Failed to parse family data: $e');
       throw Exception('Failed to parse family data: $e');
+    }
+  }
+
+  /// Method to reset user family IDvoid close() {
+  Future<void> resetFamilyId(ResetFamilyIdInput input, String token) async {
+    final uri = Uri.parse('$_baseUrl/user/family_id');
+    final jsonBody = jsonEncode(input.toJson());
+
+    final response = await _httpClient.put(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonBody,
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to reset family ID: ${response.body}');
     }
   }
 
