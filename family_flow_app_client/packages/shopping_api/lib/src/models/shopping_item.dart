@@ -15,8 +15,16 @@ class ShoppingItem extends Equatable {
   final String visibility;
   @JsonKey(name: 'created_by')
   final String createdBy;
+  @JsonKey(name: 'reserved_by')
+  final Map<String, dynamic> reservedBy;
+  @JsonKey(name: 'buyer_id')
+  final Map<String, dynamic> buyerId;
+  @JsonKey(name: 'is_archived')
+  final bool isArchived;
   @JsonKey(name: 'created_at')
   final DateTime createdAt;
+  @JsonKey(name: 'updated_at')
+  final DateTime updatedAt;
 
   ShoppingItem({
     required this.id,
@@ -26,7 +34,11 @@ class ShoppingItem extends Equatable {
     required this.status,
     required this.visibility,
     required this.createdBy,
+    required this.reservedBy,
+    required this.buyerId,
+    required this.isArchived,
     required this.createdAt,
+    required this.updatedAt,
   });
 
   factory ShoppingItem.fromJson(Map<String, dynamic> json) =>
@@ -36,13 +48,17 @@ class ShoppingItem extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        familyId,
-        title,
-        description,
-        status,
-        visibility,
-        createdBy,
-        createdAt,
-      ];
+    id,
+    familyId,
+    title,
+    description,
+    status,
+    visibility,
+    createdBy,
+    reservedBy,
+    buyerId,
+    isArchived,
+    createdAt,
+    updatedAt,
+  ];
 }

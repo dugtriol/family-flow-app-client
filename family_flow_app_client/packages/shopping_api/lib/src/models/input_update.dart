@@ -10,6 +10,8 @@ class ShoppingUpdateInput {
   final String description;
   final String status;
   final String visibility;
+  @JsonKey(name: 'is_archived')
+  final bool isArchived;
 
   ShoppingUpdateInput({
     // required this.id,
@@ -17,6 +19,7 @@ class ShoppingUpdateInput {
     required this.description,
     required this.status,
     required this.visibility,
+    required this.isArchived,
   });
 
   factory ShoppingUpdateInput.fromJson(Map<String, dynamic> json) =>

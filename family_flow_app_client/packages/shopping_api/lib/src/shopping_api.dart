@@ -53,6 +53,7 @@ class ShoppingApiClient {
     final uri = Uri.parse('$_baseUrl/shopping/$id');
     final jsonBody = jsonEncode(input.toJson());
 
+    print('isArchived: ${input.isArchived}');
     final response = await _httpClient.put(
       uri,
       headers: {
@@ -120,6 +121,105 @@ class ShoppingApiClient {
 
     final responseBody = jsonDecode(utf8.decode(response.bodyBytes)) as List;
     return responseBody.map((json) => ShoppingItem.fromJson(json)).toList();
+  }
+
+  /// Method to delete a shopping item by ID
+  Future<String> deleteShoppingItemById(String id, String token) async {
+    final uri = Uri.parse('$_baseUrl/shopping/$id');
+    print('Deleting shopping item with ID: $id');
+
+    final response = await _httpClient.delete(
+      uri,
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    print('Response status code: ${response.statusCode}');
+    if (response.statusCode != 200) {
+      print('Failed to delete shopping item. Throwing exception.');
+      throw ShoppingDeleteFailure();
+    }
+
+    final responseBody = utf8.decode(response.bodyBytes);
+    print('Successfully deleted shopping item: $responseBody');
+    return responseBody;
+  }
+
+  /// Method to update the reserved by field of a shopping item
+  Future<void> updateReservedBy(
+    String id,
+    String reservedBy,
+    String token,
+  ) async {
+    final uri = Uri.parse('$_baseUrl/shopping/reserved/$id');
+    final jsonBody = jsonEncode({'reserved_by': reservedBy});
+
+    final response = await _httpClient.put(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonBody,
+    );
+
+    if (response.statusCode != 200) {
+      throw ShoppingUpdateFailure();
+    }
+  }
+
+  /// Method to update the buyer ID of a shopping item
+  Future<void> updateBuyerId(String id, String buyerId, String token) async {
+    final uri = Uri.parse('$_baseUrl/shopping/buyer/$id');
+    final jsonBody = jsonEncode({'buyer_id': buyerId});
+
+    final response = await _httpClient.put(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonBody,
+    );
+
+    if (response.statusCode != 200) {
+      throw ShoppingUpdateFailure();
+    }
+  }
+
+  /// Method to fetch archived shopping items by user ID
+  Future<List<ShoppingItem>> getArchivedShoppingItems(String token) async {
+    final uri = Uri.parse('$_baseUrl/shopping/archived');
+
+    final response = await _httpClient.get(
+      uri,
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    if (response.statusCode != 200) {
+      throw ShoppingFetchFailure();
+    }
+
+    final responseBody = jsonDecode(utf8.decode(response.bodyBytes)) as List;
+    return responseBody.map((json) => ShoppingItem.fromJson(json)).toList();
+  }
+
+  /// Method to cancel the reserved by field of a shopping item
+  Future<void> cancelReservedBy(String id, String token) async {
+    final uri = Uri.parse('$_baseUrl/shopping/cancel_reserved/$id');
+    print('Canceling reserved by for shopping item with ID: $id');
+
+    final response = await _httpClient.put(
+      uri,
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    print('Response status code: ${response.statusCode}');
+    if (response.statusCode != 200) {
+      print('Failed to cancel reserved by. Throwing exception.');
+      throw ShoppingUpdateFailure();
+    }
+
+    print('Successfully canceled reserved by for shopping item.');
   }
 
   void close() {

@@ -15,10 +15,10 @@ ShoppingCreateInput _$ShoppingCreateInputFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$ShoppingCreateInputToJson(
-        ShoppingCreateInput instance) =>
-    <String, dynamic>{
-      'family_id': instance.familyId,
-      'title': instance.title,
-      'description': instance.description,
-      'visibility': instance.visibility,
-    };
+  ShoppingCreateInput instance,
+) => <String, dynamic>{
+  'family_id': instance.familyId,
+  'title': instance.title,
+  'description': instance.description,
+  'visibility': instance.visibility,
+};
