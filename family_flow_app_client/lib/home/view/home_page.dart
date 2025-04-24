@@ -32,9 +32,18 @@ class HomePage extends StatelessWidget {
     final shoppingRepository = RepositoryProvider.of<ShoppingRepository>(
       context,
     );
+    final wishlistRepository = RepositoryProvider.of<WishlistRepository>(
+      context,
+    );
 
     return MultiBlocProvider(
       providers: [
+        BlocProvider(
+          create:
+              (_) =>
+                  FamilyBloc(familyRepository: familyRepository)
+                    ..add(FamilyRequested()), // Загружаем данные семьи
+        ),
         BlocProvider(
           create:
               (_) => HomeCubit(
@@ -57,6 +66,9 @@ class HomeView extends StatelessWidget {
     final selectedTab = context.select((HomeCubit cubit) => cubit.state.tab);
     final todoRepository = context.read<HomeCubit>().todoRepository;
     final shoppingRepository = context.read<HomeCubit>().shoppingRepository;
+    final wishlistRepository = RepositoryProvider.of<WishlistRepository>(
+      context,
+    );
 
     return Scaffold(
       body: IndexedStack(
@@ -78,8 +90,9 @@ class HomeView extends StatelessWidget {
           BlocProvider(
             create:
                 (context) => ShoppingWishlistBloc(
-                  shoppingRepository: context.read<ShoppingRepository>(),
-                  wishlistRepository: context.read<WishlistRepository>(),
+                  familyBloc: context.read<FamilyBloc>(), // Передаём FamilyBloc
+                  shoppingRepository: shoppingRepository,
+                  wishlistRepository: wishlistRepository,
                 ),
             child: const ShoppingWishlistPage(),
           ),
@@ -87,15 +100,15 @@ class HomeView extends StatelessWidget {
             create:
                 (context) => ProfileBloc(
                   authenticationBloc: context.read<AuthenticationBloc>(),
-                  familyRepository: context.read<FamilyRepository>(),
+                  familyBloc: context.read<FamilyBloc>(), // Передаём FamilyBloc
                 )..add(ProfileRequested()),
             child: const ProfilePage(),
           ),
         ],
       ),
       bottomNavigationBar: BottomAppBar(
-        color: Colors.white, // Цвет нижнего бара
-        elevation: 4, // Тень для разделения
+        color: Colors.white,
+        elevation: 4,
         shape: const CircularNotchedRectangle(),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,

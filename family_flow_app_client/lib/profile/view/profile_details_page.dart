@@ -1,33 +1,40 @@
+import 'package:family_flow_app_client/family/bloc/family_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:family_flow_app_client/profile/bloc/profile_bloc.dart';
+import 'package:user_repository/user_repository.dart' show User;
 
 class ProfileDetailsPage extends StatelessWidget {
   const ProfileDetailsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final state = context.read<ProfileBloc>().state;
+    final profileState = context.read<ProfileBloc>().state;
+    final familyState = context.read<FamilyBloc>().state;
 
-    if (state is! ProfileLoadSuccess) {
+    if (profileState is! ProfileLoadSuccess) {
       return Scaffold(
-        appBar: AppBar(
-          title: const Text('Данные пользователя'),
-        ),
+        appBar: AppBar(title: const Text('Данные пользователя')),
         body: const Center(
           child: Text('Не удалось загрузить данные пользователя.'),
         ),
       );
     }
 
-    final user = state.user;
-    final familyName = state.familyName ?? 'Отсутствует';
+    final user = profileState.user;
+    final familyName =
+        (familyState is FamilyLoadSuccess)
+            ? familyState.members
+                .firstWhere(
+                  (member) => member.id == user.familyId,
+                  orElse: () => User.empty,
+                )
+                ?.name
+            : 'Отсутствует';
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Профиль пользователя'),
-      ),
+      appBar: AppBar(title: const Text('Профиль пользователя')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
@@ -58,10 +65,7 @@ class ProfileDetailsPage extends StatelessWidget {
                     const SizedBox(height: 8),
                     Text(
                       user.email,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey,
-                      ),
+                      style: const TextStyle(fontSize: 16, color: Colors.grey),
                     ),
                   ],
                 ),
@@ -139,9 +143,7 @@ class ProfileDetailsPage extends StatelessWidget {
                   onPressed: () {
                     // Логика сохранения изменений
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Изменения сохранены!'),
-                      ),
+                      const SnackBar(content: Text('Изменения сохранены!')),
                     );
                   },
                   icon: const Icon(Icons.save),

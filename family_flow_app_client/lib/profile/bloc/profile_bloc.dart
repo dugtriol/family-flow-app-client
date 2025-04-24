@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:family_flow_app_client/authentication/bloc/authentication_bloc.dart';
+import 'package:family_flow_app_client/family/family.dart';
 import 'package:family_repository/family_repository.dart';
 import 'package:user_repository/user_repository.dart' show User;
 
@@ -10,17 +11,17 @@ part 'profile_state.dart';
 class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   ProfileBloc({
     required AuthenticationBloc authenticationBloc,
-    required FamilyRepository familyRepository,
-  })  : _authenticationBloc = authenticationBloc,
-        _familyRepository = familyRepository,
-        super(ProfileInitial()) {
+    required FamilyBloc familyBloc,
+  }) : _authenticationBloc = authenticationBloc,
+       _familyBloc = familyBloc,
+       super(ProfileInitial()) {
     on<ProfileRequested>(_onProfileRequested);
     on<ProfileLogoutRequested>(_onLogoutRequested);
     on<ProfileReset>(_onReset);
   }
 
   final AuthenticationBloc _authenticationBloc;
-  final FamilyRepository _familyRepository;
+  final FamilyBloc _familyBloc;
 
   Future<void> _onProfileRequested(
     ProfileRequested event,
@@ -34,9 +35,18 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         String? familyName;
         if (user.familyId.isNotEmpty) {
           print('Fetching family data for familyId: ${user.familyId}');
-          final family = await _familyRepository.getFamilyById(user.familyId);
-          familyName = family.name;
-          print('Family data fetched successfully: $familyName');
+          // Получаем состояние FamilyBloc
+          final familyState = _familyBloc.state;
+          if (familyState is FamilyLoadSuccess) {
+            final family = familyState.members.firstWhere(
+              (member) => member.id == user.familyId,
+              orElse: () => User.empty,
+            );
+            familyName = family?.name;
+            print('Family data fetched successfully: $familyName');
+          } else {
+            print('Family data not loaded yet');
+          }
         }
         emit(ProfileLoadSuccess(user: user, familyName: familyName));
         print('ProfileLoadSuccess emitted');
@@ -57,10 +67,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     _authenticationBloc.add(AuthenticationLogoutPressed());
   }
 
-  void _onReset(
-    ProfileReset event,
-    Emitter<ProfileState> emit,
-  ) {
+  void _onReset(ProfileReset event, Emitter<ProfileState> emit) {
     emit(ProfileInitial());
   }
 }
