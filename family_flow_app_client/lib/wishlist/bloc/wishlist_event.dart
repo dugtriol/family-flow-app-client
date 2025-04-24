@@ -4,10 +4,17 @@ abstract class WishlistEvent extends Equatable {
   const WishlistEvent();
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
-class WishlistRequested extends WishlistEvent {}
+class WishlistRequested extends WishlistEvent {
+  const WishlistRequested({this.memberId});
+
+  final String? memberId; // Идентификатор члена семьи (может быть null)
+
+  @override
+  List<Object?> get props => [memberId];
+}
 
 class WishlistItemCreateRequested extends WishlistEvent {
   const WishlistItemCreateRequested({
