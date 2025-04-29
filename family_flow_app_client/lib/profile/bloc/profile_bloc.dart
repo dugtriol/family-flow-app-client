@@ -18,6 +18,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     on<ProfileRequested>(_onProfileRequested);
     on<ProfileLogoutRequested>(_onLogoutRequested);
     on<ProfileReset>(_onReset);
+    on<ProfileUpdateRequested>(_onProfileUpdateRequested);
   }
 
   final AuthenticationBloc _authenticationBloc;
@@ -28,6 +29,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     Emitter<ProfileState> emit,
   ) async {
     print('ProfileRequested event received');
+    _authenticationBloc.add(AuthenticationUserRefreshed());
     final user = _authenticationBloc.state.user;
     if (user != null) {
       print('User found: ${user.id}');
@@ -69,5 +71,23 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
 
   void _onReset(ProfileReset event, Emitter<ProfileState> emit) {
     emit(ProfileInitial());
+  }
+
+  void _onProfileUpdateRequested(
+    ProfileUpdateRequested event,
+    Emitter<ProfileState> emit,
+  ) {
+    print('ProfileUpdateRequested event received');
+    print('Updating profile with name: ${event.name}, email: ${event.email}');
+
+    // Отправляем событие в AuthenticationBloc
+    _authenticationBloc.add(
+      AuthenticationProfileUpdateRequested(
+        name: event.name,
+        email: event.email,
+      ),
+    );
+
+    print('AuthenticationProfileUpdateRequested event dispatched');
   }
 }

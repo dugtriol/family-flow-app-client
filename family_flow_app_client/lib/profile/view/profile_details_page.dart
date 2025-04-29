@@ -5,13 +5,61 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:family_flow_app_client/profile/bloc/profile_bloc.dart';
 import 'package:user_repository/user_repository.dart' show User;
 
-class ProfileDetailsPage extends StatelessWidget {
+class ProfileDetailsPage extends StatefulWidget {
   const ProfileDetailsPage({super.key});
+
+  @override
+  State<ProfileDetailsPage> createState() => _ProfileDetailsPageState();
+}
+
+class _ProfileDetailsPageState extends State<ProfileDetailsPage> {
+  late TextEditingController nameController;
+  late TextEditingController emailController;
+  late String initialName;
+  late String initialEmail;
+
+  @override
+  void initState() {
+    super.initState();
+    final profileState = context.read<ProfileBloc>().state;
+    if (profileState is ProfileLoadSuccess) {
+      nameController = TextEditingController(text: profileState.user.name);
+      emailController = TextEditingController(text: profileState.user.email);
+      initialName = profileState.user.name;
+      initialEmail = profileState.user.email;
+    } else {
+      nameController = TextEditingController();
+      emailController = TextEditingController();
+      initialName = '';
+      initialEmail = '';
+    }
+  }
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    emailController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _updateProfileIfChanged() async {
+    final currentName = nameController.text;
+    final currentEmail = emailController.text;
+
+    if (currentName != initialName || currentEmail != initialEmail) {
+      context.read<ProfileBloc>().add(
+        ProfileUpdateRequested(name: currentName, email: currentEmail),
+      );
+
+      // Обновляем начальное значение
+      initialName = currentName;
+      initialEmail = currentEmail;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final profileState = context.read<ProfileBloc>().state;
-    final familyState = context.read<FamilyBloc>().state;
 
     if (profileState is! ProfileLoadSuccess) {
       return Scaffold(
@@ -23,140 +71,177 @@ class ProfileDetailsPage extends StatelessWidget {
     }
 
     final user = profileState.user;
-    final familyName =
-        (familyState is FamilyLoadSuccess)
-            ? familyState.members
-                .firstWhere(
-                  (member) => member.id == user.familyId,
-                  orElse: () => User.empty,
-                )
-                ?.name
-            : 'Отсутствует';
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Профиль пользователя')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Аватар пользователя
-              Center(
-                child: Column(
-                  children: [
-                    CircleAvatar(
-                      radius: 50,
-                      backgroundColor: Colors.blueAccent,
-                      child: const Icon(
-                        Icons.person,
-                        size: 50,
+    return WillPopScope(
+      onWillPop: () async {
+        await _updateProfileIfChanged();
+        return true;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text(
+            'Профиль',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          backgroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.black87),
+            onPressed: () async {
+              await _updateProfileIfChanged();
+              if (mounted) {
+                Navigator.of(context).pop();
+              }
+            },
+          ),
+        ),
+        body: RefreshIndicator(
+          onRefresh: () async {
+            context.read<ProfileBloc>().add(ProfileRequested());
+            await Future.delayed(
+              const Duration(seconds: 1),
+            ); // Для имитации загрузки
+          },
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  CircleAvatar(
+                    radius: 50,
+                    backgroundColor: Colors.deepPurple,
+                    child: Text(
+                      user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
+                      style: const TextStyle(
+                        fontSize: 40,
+                        fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    Text(
-                      user.name,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      user.email,
-                      style: const TextStyle(fontSize: 16, color: Colors.grey),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 32),
-
-              // Имя пользователя
-              TextFormField(
-                initialValue: user.name,
-                decoration: const InputDecoration(
-                  labelText: 'Имя',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.person),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Email пользователя (только для чтения)
-              TextFormField(
-                initialValue: user.email,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.email),
-                ),
-                readOnly: true,
-              ),
-              const SizedBox(height: 16),
-
-              // Имя семьи и кнопка для копирования ID семьи
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      initialValue: familyName,
-                      decoration: const InputDecoration(
-                        labelText: 'Семья',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.group),
-                      ),
-                      readOnly: true, // Поле только для чтения
-                    ),
                   ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    icon: const Icon(Icons.copy),
-                    onPressed: () {
-                      Clipboard.setData(ClipboardData(text: user.familyId));
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('ID семьи скопирован в буфер обмена'),
+                  const SizedBox(height: 16),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.2),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
                         ),
-                      );
-                    },
+                      ],
+                    ),
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Поле для имени
+                        Row(
+                          children: [
+                            const Icon(Icons.person, color: Colors.deepPurple),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: TextField(
+                                controller: nameController,
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
+                                decoration: const InputDecoration(
+                                  border: InputBorder.none,
+                                  hintText: 'Имя',
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const Divider(),
+
+                        // Поле для email
+                        Row(
+                          children: [
+                            const Icon(Icons.email, color: Colors.deepPurple),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: TextField(
+                                controller: emailController,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.black87,
+                                ),
+                                decoration: const InputDecoration(
+                                  border: InputBorder.none,
+                                  hintText: 'Email',
+                                ),
+                                readOnly: true,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const Divider(),
+
+                        // Поле для роли
+                        Row(
+                          children: [
+                            const Icon(Icons.work, color: Colors.deepPurple),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: TextField(
+                                controller: TextEditingController(
+                                  text: user.role,
+                                ),
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.black87,
+                                ),
+                                decoration: const InputDecoration(
+                                  border: InputBorder.none,
+                                  hintText: 'Роль',
+                                ),
+                                readOnly: true,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const Divider(),
+
+                        // Кнопка сохранения изменений
+                        Center(
+                          child: ElevatedButton.icon(
+                            onPressed: () async {
+                              await _updateProfileIfChanged();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Изменения сохранены!'),
+                                ),
+                              );
+                              Navigator.of(context).pop();
+                            },
+                            icon: const Icon(Icons.save, color: Colors.white),
+                            label: const Text(
+                              'Сохранить',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.deepPurple,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-
-              // Роль пользователя (только для чтения)
-              TextFormField(
-                initialValue: user.role,
-                decoration: const InputDecoration(
-                  labelText: 'Роль',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.work),
-                ),
-                readOnly: true,
-              ),
-              const SizedBox(height: 32),
-
-              // Кнопка сохранения изменений
-              Center(
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    // Логика сохранения изменений
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Изменения сохранены!')),
-                    );
-                  },
-                  icon: const Icon(Icons.save),
-                  label: const Text('Сохранить изменения'),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
-                    ),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),

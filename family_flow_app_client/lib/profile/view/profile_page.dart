@@ -60,145 +60,171 @@ class _ProfilePageState extends State<ProfilePage> {
         ],
       ),
       backgroundColor: Colors.white, // Устанавливаем цвет фона как у AppBar
-      body: BlocBuilder<ProfileBloc, ProfileState>(
-        builder: (context, state) {
-          if (state is ProfileLoadSuccess) {
-            final user = state.user;
-            return SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Аватар и информация о пользователе
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder:
-                                (_) => BlocProvider.value(
-                                  value: context.read<ProfileBloc>(),
-                                  child: const ProfileDetailsPage(),
-                                ),
-                          ),
-                        );
-                      },
-                      child: Row(
-                        children: [
-                          const ProfileAvatar(),
-                          const SizedBox(width: 16),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                user.name,
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black87,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                user.email,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    // Вкладки для перехода
-                    ProfileOption(
-                      icon: Icons.notifications,
-                      label: 'Уведомления',
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const NotificationsPage(),
-                          ),
-                        );
-                      },
-                    ),
-                    const Divider(),
-                    ProfileOption(
-                      icon: Icons.group,
-                      label: 'Семья',
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder:
-                                (_) => BlocProvider.value(
-                                  value: context.read<FamilyBloc>(),
-                                  child: const FamilyPage(),
-                                ),
-                          ),
-                        );
-                      },
-                    ),
-                    const Divider(),
-                    ProfileOption(
-                      icon: Icons.book,
-                      label: 'Дневник',
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder:
-                                (_) => BlocProvider(
-                                  create:
-                                      (_) => DiaryBloc()..add(DiaryRequested()),
-                                  child: const DiaryPage(),
-                                ),
-                          ),
-                        );
-                      },
-                    ),
-                    const Divider(),
-                    ProfileOption(
-                      icon: Icons.bar_chart,
-                      label: 'Статистика',
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder:
-                                (_) => const PlaceholderScreen(
-                                  title: 'Статистика',
-                                ),
-                          ),
-                        );
-                      },
-                    ),
-                    const Divider(),
-
-                    // Кнопка "Выйти"
-                    ProfileOption(
-                      icon: Icons.logout,
-                      label: 'Выйти',
-                      onTap: () {
-                        context.read<ProfileBloc>().add(
-                          ProfileLogoutRequested(),
-                        );
-                      },
-                      isDestructive: true,
-                    ),
-                  ],
-                ),
-              ),
-            );
-          } else if (state is ProfileLoadFailure) {
-            return Center(
-              child: Text(
-                'Не удалось загрузить профиль: ${state.error}',
-                style: const TextStyle(color: Colors.red),
-              ),
-            );
-          }
-          return const Center(child: CircularProgressIndicator());
+      body: RefreshIndicator(
+        onRefresh: () async {
+          // Отправляем событие для обновления профиля
+          context.read<ProfileBloc>().add(ProfileRequested());
+          await Future.delayed(
+            const Duration(seconds: 1),
+          ); // Для имитации загрузки
         },
+        child: BlocBuilder<ProfileBloc, ProfileState>(
+          builder: (context, state) {
+            if (state is ProfileLoadSuccess) {
+              final user = state.user;
+              return SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Аватар и информация о пользователе
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder:
+                                  (_) => BlocProvider.value(
+                                    value: context.read<ProfileBloc>(),
+                                    child: const ProfileDetailsPage(),
+                                  ),
+                            ),
+                          );
+                        },
+                        child: Row(
+                          children: [
+                            // const ProfileAvatar(),
+                            CircleAvatar(
+                              radius: 40,
+                              backgroundColor: Colors.deepPurple,
+                              child: Text(
+                                user.name.isNotEmpty
+                                    ? user.name[0].toUpperCase()
+                                    : '?',
+                                style: const TextStyle(
+                                  fontSize: 40,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            const SizedBox(width: 16),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  user.name,
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  user.email,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      // Вкладки для перехода
+                      ProfileOption(
+                        icon: Icons.notifications,
+                        label: 'Уведомления',
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const NotificationsPage(),
+                            ),
+                          );
+                        },
+                      ),
+                      const Divider(),
+                      ProfileOption(
+                        icon: Icons.group,
+                        label: 'Семья',
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder:
+                                  (_) => BlocProvider.value(
+                                    value: context.read<FamilyBloc>(),
+                                    child: const FamilyPage(),
+                                  ),
+                            ),
+                          );
+                        },
+                      ),
+                      const Divider(),
+                      ProfileOption(
+                        icon: Icons.book,
+                        label: 'Дневник',
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder:
+                                  (_) => BlocProvider(
+                                    create:
+                                        (_) =>
+                                            DiaryBloc()..add(DiaryRequested()),
+                                    child: const DiaryPage(),
+                                  ),
+                            ),
+                          );
+                        },
+                      ),
+                      const Divider(),
+                      ProfileOption(
+                        icon: Icons.bar_chart,
+                        label: 'Статистика',
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder:
+                                  (_) => const PlaceholderScreen(
+                                    title: 'Статистика',
+                                  ),
+                            ),
+                          );
+                        },
+                      ),
+                      const Divider(),
+
+                      // Кнопка "Выйти"
+                      ProfileOption(
+                        icon: Icons.logout,
+                        label: 'Выйти',
+                        onTap: () {
+                          context.read<ProfileBloc>().add(
+                            ProfileLogoutRequested(),
+                          );
+                        },
+                        isDestructive: true,
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            } else if (state is ProfileLoadFailure) {
+              return Center(
+                child: Text(
+                  'Не удалось загрузить профиль: ${state.error}',
+                  style: const TextStyle(color: Colors.red),
+                ),
+              );
+            }
+            return const Center(child: CircularProgressIndicator());
+          },
+        ),
       ),
     );
   }

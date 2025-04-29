@@ -15,3 +15,14 @@ class ProfileLogoutRequested extends ProfileEvent {}
 
 /// Событие для сброса состояния профиля
 class ProfileReset extends ProfileEvent {}
+
+/// Событие для обновления профиля
+class ProfileUpdateRequested extends ProfileEvent {
+  const ProfileUpdateRequested({required this.name, required this.email});
+
+  final String name;
+  final String email;
+
+  @override
+  List<Object?> get props => [name, email];
+}
