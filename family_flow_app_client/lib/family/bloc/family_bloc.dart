@@ -10,41 +10,43 @@ part 'family_event.dart';
 part 'family_state.dart';
 
 class FamilyBloc extends Bloc<FamilyEvent, FamilyState> {
-  FamilyBloc({
-    required FamilyRepository familyRepository,
-  })  : _familyRepository = familyRepository,
-        super(FamilyInitial()) {
+  FamilyBloc({required FamilyRepository familyRepository})
+    : _familyRepository = familyRepository,
+      super(FamilyInitial()) {
     on<FamilyRequested>(_onFamilyRequested);
     on<FamilyCreateRequested>(_onFamilyCreateRequested);
     on<FamilyJoinRequested>(_onFamilyJoinRequested);
     on<FamilyAddMemberRequested>(_onFamilyAddMemberRequested);
+    on<FamilyRemoveMemberRequested>(_onFamilyRemoveMemberRequested);
   }
 
   final FamilyRepository _familyRepository;
 
-Future<void> _onFamilyRequested(
-  FamilyRequested event,
-  Emitter<FamilyState> emit,
-) async {
-  emit(FamilyLoading());
-  try {
-    final user = await _familyRepository.getCurrentUser();
-    if (user.familyId.isEmpty) {
-      emit(FamilyNoFamily());
-    } else {
-      final family = await _familyRepository.getFamilyById(user.familyId);
-      final members = await _familyRepository.fetchFamilyMembers(user.familyId);
-
-      if (members.isEmpty) {
-        emit(FamilyNoMembers(familyName: family.name));
+  Future<void> _onFamilyRequested(
+    FamilyRequested event,
+    Emitter<FamilyState> emit,
+  ) async {
+    emit(FamilyLoading());
+    try {
+      final user = await _familyRepository.getCurrentUser();
+      if (user.familyId.isEmpty) {
+        emit(FamilyNoFamily());
       } else {
-        emit(FamilyLoadSuccess(familyName: family.name, members: members));
+        final family = await _familyRepository.getFamilyById(user.familyId);
+        final members = await _familyRepository.fetchFamilyMembers(
+          user.familyId,
+        );
+
+        if (members.isEmpty) {
+          emit(FamilyNoMembers(familyName: family.name));
+        } else {
+          emit(FamilyLoadSuccess(familyName: family.name, members: members));
+        }
       }
+    } catch (e) {
+      emit(FamilyLoadFailure(error: e.toString()));
     }
-  } catch (e) {
-    emit(FamilyLoadFailure(error: e.toString()));
   }
-}
 
   Future<void> _onFamilyCreateRequested(
     FamilyCreateRequested event,
@@ -83,6 +85,22 @@ Future<void> _onFamilyRequested(
         InputAddMemberToFamily(emailUser: event.email, familyId: user.familyId),
       );
       add(FamilyRequested());
+    } catch (e) {
+      emit(FamilyLoadFailure(error: e.toString()));
+    }
+  }
+
+  Future<void> _onFamilyRemoveMemberRequested(
+    FamilyRemoveMemberRequested event,
+    Emitter<FamilyState> emit,
+  ) async {
+    emit(FamilyLoading());
+    try {
+      await _familyRepository.removeMemberFromFamily(
+        event.memberId,
+        event.familyId,
+      );
+      add(FamilyRequested()); // Обновляем список семьи после удаления
     } catch (e) {
       emit(FamilyLoadFailure(error: e.toString()));
     }

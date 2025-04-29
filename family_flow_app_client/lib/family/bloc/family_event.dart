@@ -36,3 +36,16 @@ class FamilyAddMemberRequested extends FamilyEvent {
   @override
   List<Object> get props => [email, role];
 }
+
+class FamilyRemoveMemberRequested extends FamilyEvent {
+  final String memberId;
+  final String familyId;
+
+  const FamilyRemoveMemberRequested({
+    required this.memberId,
+    required this.familyId,
+  });
+
+  @override
+  List<Object> get props => [memberId, familyId];
+}
