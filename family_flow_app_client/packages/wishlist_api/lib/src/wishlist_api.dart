@@ -81,17 +81,26 @@ class WishlistApiClient {
   Future<void> deleteWishlistItem(String id, String token) async {
     final uri = Uri.parse('$_baseUrl/wishlist/$id');
 
+    print('Sending DELETE request to: $uri');
+    print('Authorization token: $token');
+
     final response = await _httpClient.delete(
       uri,
       headers: {'Authorization': 'Bearer $token'},
     );
 
+    print('Response status code: ${response.statusCode}');
+    print('Response headers: ${response.headers}');
+    print('Response body: ${response.body}');
+
     if (response.statusCode != 200) {
+      print('Failed to delete wishlist item. Throwing WishlistDeleteFailure.');
       throw WishlistDeleteFailure();
     }
+
+    print('Wishlist item deleted successfully.');
   }
 
-  /// Method to fetch wishlist items by user ID
   Future<List<WishlistItem>> getWishlistItemsByUserID(String token) async {
     final uri = Uri.parse('$_baseUrl/wishlist/');
 
@@ -112,24 +121,28 @@ class WishlistApiClient {
       throw WishlistFetchFailure();
     }
 
-    if (response.body.isEmpty || response.body == []) {
+    // Проверяем, если тело ответа пустое, возвращаем пустой список
+    if (response.body.isEmpty) {
       print('Response body is empty. Returning an empty list.');
       return [];
     }
 
-    final responseBody = jsonDecode(utf8.decode(response.bodyBytes)) as List;
-    print('Decoded response body: $responseBody');
+    try {
+      final responseBody = jsonDecode(utf8.decode(response.bodyBytes));
+      if (responseBody is! List) {
+        print('Response body is not a list. Returning an empty list.');
+        return [];
+      }
 
-    if (responseBody.isEmpty) {
-      print('Response body is an empty list. Returning an empty list.');
+      final wishlistItems =
+          responseBody.map((json) => WishlistItem.fromJson(json)).toList();
+      print('Parsed wishlist items: $wishlistItems');
+
+      return wishlistItems;
+    } catch (e) {
+      print('Error decoding response body: $e. Returning an empty list.');
       return [];
     }
-
-    final wishlistItems =
-        responseBody.map((json) => WishlistItem.fromJson(json)).toList();
-    print('Parsed wishlist items: $wishlistItems');
-
-    return wishlistItems;
   }
 
   /// Method to fetch wishlist items by user ID
@@ -251,6 +264,32 @@ class WishlistApiClient {
     print('Parsed archived wishlist items: $archivedItems');
 
     return archivedItems;
+  }
+
+  /// Method to cancel update of the reserved by field of a wishlist item
+  Future<void> cancelUpdateReservedBy(String id, String token) async {
+    final uri = Uri.parse('$_baseUrl/wishlist/$id/cancel_reserved_by');
+
+    print('Sending PUT request to: $uri');
+    print('Authorization token: $token');
+
+    final response = await _httpClient.put(
+      uri,
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    print('Response status code: ${response.statusCode}');
+    print('Response headers: ${response.headers}');
+    print('Response body: ${response.body}');
+
+    if (response.statusCode != 200) {
+      print(
+        'Failed to cancel update reserved by. Throwing WishlistUpdateFailure.',
+      );
+      throw WishlistUpdateFailure();
+    }
+
+    print('Cancelled update of reserved by successfully.');
   }
 
   void dispose() {

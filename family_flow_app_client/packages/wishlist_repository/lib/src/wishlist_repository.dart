@@ -100,7 +100,7 @@ class WishlistRepository {
     required String description,
     required String link,
     required String status,
-    required bool isReserved,
+    required bool isArchived,
   }) async {
     try {
       print('Starting to update a wishlist item...');
@@ -115,7 +115,7 @@ class WishlistRepository {
         description: description,
         link: link,
         status: status,
-        isArchived: isReserved,
+        isArchived: isArchived,
       );
       print('WishlistUpdateInput prepared: $wishlistUpdateInput');
 
@@ -204,7 +204,55 @@ class WishlistRepository {
     }
   }
 
-  /// Закрытие потоков
+  /// Получение элементов списка желаний по ID пользователя семьи
+  Future<List<WishlistItem>> fetchWishlistItemsByFamilyUserID(
+    String userId,
+  ) async {
+    try {
+      print('Fetching wishlist items by family user ID...');
+      final token = await _getJwtToken();
+      if (token == null) {
+        print('JWT token is missing');
+        throw Exception('JWT token is missing');
+      }
+      print('JWT token retrieved: $token');
+
+      final items = await _wishlistApiClient.getWishlistItemsByFamilyUserID(
+        token,
+        userId,
+      );
+      print('Wishlist items by family user ID fetched successfully: $items');
+      return items;
+    } catch (e) {
+      print(
+        'WishlistRepository - fetchWishlistItemsByFamilyUserID - Failed to fetch wishlist items by family user ID: $e',
+      );
+      throw Exception('Failed to fetch wishlist items by family user ID');
+    }
+  }
+
+  /// Отмена обновления поля reservedBy элемента списка желаний
+  Future<void> cancelUpdateReservedBy(String id) async {
+    try {
+      print('Starting to cancel update of reservedBy field...');
+      final token = await _getJwtToken();
+      if (token == null) {
+        print('JWT token is missing');
+        throw Exception('JWT token is missing');
+      }
+
+      await _wishlistApiClient.cancelUpdateReservedBy(id, token);
+      print('Cancelled update of reservedBy field successfully');
+
+      final updatedWishlistItems = await fetchWishlistItems();
+      print('Updated wishlist items fetched: $updatedWishlistItems');
+      _wishlistController.add(updatedWishlistItems);
+    } catch (e) {
+      print('Failed to cancel update of reservedBy field: $e');
+      throw WishlistUpdateFailure();
+    }
+  }
+
   void dispose() {
     _wishlistController.close();
   }
