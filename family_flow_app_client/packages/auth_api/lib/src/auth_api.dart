@@ -8,7 +8,7 @@ class LoginFailure implements Exception {}
 
 class AuthApiClient {
   AuthApiClient({http.Client? httpClient})
-      : _httpClient = httpClient ?? http.Client();
+    : _httpClient = httpClient ?? http.Client();
 
   static const _baseUrl = 'http://localhost:8080/api';
   final http.Client _httpClient;
@@ -27,7 +27,17 @@ class AuthApiClient {
 
     final responseBody =
         jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
-    return Token.fromJson(responseBody);
+    print("responseBody: ");
+    print(responseBody['token']);
+    Token token = Token(jwt: responseBody['token']);
+
+    try {
+      token = Token.fromJson(responseBody);
+    } catch (e) {
+      print("Error parsing token: $e");
+    }
+
+    return token;
   }
 
   Future<Token> login(SignInForm signInForm) async {
@@ -48,9 +58,14 @@ class AuthApiClient {
         jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
     print("responseBody: ");
     print(responseBody['token']);
+    Token token = Token(jwt: responseBody['token']);
 
-    var token = Token.fromJson(responseBody);
-    print("token: $token");
+    try {
+      token = Token.fromJson(responseBody);
+    } catch (e) {
+      print("Error parsing token: $e");
+    }
+
     return token;
   }
 
@@ -88,7 +103,45 @@ class AuthApiClient {
     }
   }
 
-  void close() {
+  Future<bool> userExists(String email) async {
+    final userExistsRequest = Uri.parse('$_baseUrl/auth/exists?email=$email');
+    final response = await _httpClient.get(
+      userExistsRequest,
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      final responseBody =
+          jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+      return responseBody['exists'] as bool;
+    } else if (response.statusCode == 400) {
+      print('Invalid request: Email is required');
+      return false;
+    } else {
+      throw Exception('Failed to check if user exists');
+    }
+  }
+
+  Future<void> updatePassword(
+    // String token,
+    UserUpdatePasswordInput input,
+  ) async {
+    final uri = Uri.parse('$_baseUrl/auth/password');
+    final response = await _httpClient.put(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        // 'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(input.toJson()),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update password');
+    }
+  }
+
+  void dispose() {
     _httpClient.close();
   }
 }

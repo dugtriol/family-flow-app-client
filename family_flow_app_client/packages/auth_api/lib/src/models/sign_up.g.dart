@@ -7,11 +7,11 @@ part of 'sign_up.dart';
 // **************************************************************************
 
 SignUpForm _$SignUpFormFromJson(Map<String, dynamic> json) => SignUpForm(
-      name: json['name'] as String,
-      email: json['email'] as String,
-      password: json['password'] as String,
-      role: json['role'] as String,
-    );
+  name: json['name'] as String,
+  email: json['email'] as String,
+  password: json['password'] as String,
+  role: json['role'] as String,
+);
 
 Map<String, dynamic> _$SignUpFormToJson(SignUpForm instance) =>
     <String, dynamic>{
