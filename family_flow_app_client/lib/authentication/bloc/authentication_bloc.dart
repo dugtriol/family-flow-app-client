@@ -4,6 +4,7 @@ import 'package:equatable/equatable.dart';
 import 'package:todo_repository/todo_repository.dart';
 import 'package:shopping_repository/shopping_repository.dart'; // Импортируем ShoppingRepository
 import 'package:user_repository/user_repository.dart';
+import 'package:user_api/user_api.dart';
 import 'package:authentication_repository/authentication_repository.dart';
 
 part 'authentication_event.dart';
@@ -16,16 +17,17 @@ class AuthenticationBloc
     required UserRepository userRepository,
     required TodoRepository todoRepository,
     required ShoppingRepository
-        shoppingRepository, // Добавляем ShoppingRepository
-  })  : _authenticationRepository = authenticationRepository,
-        _userRepository = userRepository,
-        _todoRepository = todoRepository,
-        _shoppingRepository =
-            shoppingRepository, // Инициализируем ShoppingRepository
-        super(const AuthenticationState.unknown()) {
+    shoppingRepository, // Добавляем ShoppingRepository
+  }) : _authenticationRepository = authenticationRepository,
+       _userRepository = userRepository,
+       _todoRepository = todoRepository,
+       _shoppingRepository =
+           shoppingRepository, // Инициализируем ShoppingRepository
+       super(const AuthenticationState.unknown()) {
     on<AuthenticationSubscriptionRequested>(_onSubscriptionRequested);
     on<AuthenticationLogoutPressed>(_onLogoutPressed);
     on<AuthenticationUserRefreshed>(_onUserRefreshed);
+    on<AuthenticationProfileUpdateRequested>(_onProfileUpdateRequested);
   }
 
   final AuthenticationRepository _authenticationRepository;
@@ -44,13 +46,15 @@ class AuthenticationBloc
           case AuthenticationStatus.unauthenticated:
             _todoRepository.updateFamilyId(null);
             _shoppingRepository.updateFamilyId(
-                null); // Сбрасываем familyId в ShoppingRepository
+              null,
+            ); // Сбрасываем familyId в ShoppingRepository
             return emit(const AuthenticationState.unauthenticated());
           case AuthenticationStatus.authenticated:
             final user = await _tryGetUser();
             _todoRepository.updateFamilyId(user?.familyId);
             _shoppingRepository.updateFamilyId(
-                user?.familyId); // Обновляем familyId в ShoppingRepository
+              user?.familyId,
+            ); // Обновляем familyId в ShoppingRepository
             return emit(
               user != null
                   ? AuthenticationState.authenticated(user)
@@ -70,8 +74,9 @@ class AuthenticationBloc
   ) {
     _authenticationRepository.logOut();
     _todoRepository.updateFamilyId(null);
-    _shoppingRepository
-        .updateFamilyId(null); // Сбрасываем familyId в ShoppingRepository
+    _shoppingRepository.updateFamilyId(
+      null,
+    ); // Сбрасываем familyId в ShoppingRepository
   }
 
   Future<void> _onUserRefreshed(
@@ -82,7 +87,8 @@ class AuthenticationBloc
       final user = await _userRepository.getUser();
       _todoRepository.updateFamilyId(user?.familyId);
       _shoppingRepository.updateFamilyId(
-          user?.familyId); // Обновляем familyId в ShoppingRepository
+        user?.familyId,
+      ); // Обновляем familyId в ShoppingRepository
       if (user != null) {
         emit(AuthenticationState.authenticated(user));
       } else {
@@ -99,6 +105,31 @@ class AuthenticationBloc
       return user;
     } catch (_) {
       return null;
+    }
+  }
+
+  void _onProfileUpdateRequested(
+    AuthenticationProfileUpdateRequested event,
+    Emitter<AuthenticationState> emit,
+  ) async {
+    try {
+      final user = state.user;
+      if (user != null) {
+        print('Updating profile for user: ${user.id}');
+        await _userRepository.updateUser(
+          UserUpdateInput(
+            name: event.name,
+            email: event.email,
+            role: user.role,
+          ),
+        );
+        print('Profile updated successfully for user: ${user.id}');
+        _tryGetUser();
+        emit(AuthenticationState.authenticated(user));
+      }
+    } catch (e) {
+      print('Failed to update profile for user: ${state.user?.id}, error: $e');
+      emit(const AuthenticationState.unauthenticated());
     }
   }
 }
