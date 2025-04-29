@@ -5,218 +5,6 @@ import '../../family/family.dart';
 import '../bloc/wishlist_bloc.dart';
 import 'widgets/widgets.dart';
 
-// class WishlistPage extends StatefulWidget {
-//   const WishlistPage({super.key});
-
-//   @override
-//   State<WishlistPage> createState() => _WishlistPageState();
-// }
-
-// class _WishlistPageState extends State<WishlistPage> {
-//   String? _selectedFamilyMember; // Выбранный член семьи
-//   List<String> _familyMembers = []; // Список членов семьи
-
-//   @override
-//   void initState() {
-//     super.initState();
-//     // Инициализация списка членов семьи (заглушка, заменить на реальные данные)
-//     _familyMembers = ['Мой список', 'Иван', 'Мария', 'Анна'];
-//     _selectedFamilyMember = _familyMembers.first;
-//   }
-
-//   void _onFamilyMemberChanged(String? newValue) {
-//     setState(() {
-//       _selectedFamilyMember = newValue;
-//     });
-
-//     // Отправляем событие для загрузки вишлиста выбранного члена семьи
-//     // context.read<WishlistBloc>().add(
-//     //   WishlistRequestedForMember(memberName: newValue!),
-//     // );
-//   }
-
-//   Future<void> _refreshWishlist() async {
-//     // Отправляем событие для обновления списка желаний
-//     context.read<WishlistBloc>().add(WishlistRequested());
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       backgroundColor: Colors.white,
-//       body: Column(
-//         children: [
-//           // DropdownButton для выбора члена семьи
-//           Padding(
-//             padding: const EdgeInsets.all(16.0),
-//             child: DropdownButton<String>(
-//               value: _selectedFamilyMember,
-//               isExpanded: true,
-//               items:
-//                   _familyMembers.map((String member) {
-//                     return DropdownMenuItem<String>(
-//                       value: member,
-//                       child: Text(
-//                         member,
-//                         style: const TextStyle(
-//                           fontSize: 16,
-//                           fontWeight: FontWeight.w500,
-//                           color: Colors.black87,
-//                         ),
-//                       ),
-//                     );
-//                   }).toList(),
-//               onChanged: _onFamilyMemberChanged,
-//               underline: Container(height: 2, color: Colors.deepPurple),
-//             ),
-//           ),
-//           Expanded(
-//             child: RefreshIndicator(
-//               onRefresh: _refreshWishlist,
-//               child: BlocBuilder<WishlistBloc, WishlistState>(
-//                 builder: (context, state) {
-//                   if (state is WishlistLoading) {
-//                     return const Center(child: CircularProgressIndicator());
-//                   } else if (state is WishlistLoadSuccess) {
-//                     if (state.items.isEmpty) {
-//                       return ListView(
-//                         physics: const AlwaysScrollableScrollPhysics(),
-//                         children: const [
-//                           Center(
-//                             child: Padding(
-//                               padding: EdgeInsets.all(16.0),
-//                               child: Text(
-//                                 'Список желаний пуст.\nПотяните вниз, чтобы обновить список.',
-//                                 style: TextStyle(
-//                                   fontSize: 16,
-//                                   color: Colors.black54,
-//                                 ),
-//                                 textAlign: TextAlign.center,
-//                               ),
-//                             ),
-//                           ),
-//                         ],
-//                       );
-//                     }
-//                     return ListView.builder(
-//                       itemCount: state.items.length,
-//                       itemBuilder: (context, index) {
-//                         final item = state.items[index];
-//                         final currentUserId =
-//                             context.read<AuthenticationBloc>().state.user?.id;
-//                         final isOwner = item.createdBy == currentUserId;
-
-//                         return GestureDetector(
-//                           onTap: () {
-//                             Navigator.of(context).push(
-//                               MaterialPageRoute(
-//                                 builder:
-//                                     (_) => BlocProvider.value(
-//                                       value: context.read<WishlistBloc>(),
-//                                       child: WishlistDetailsDialog(
-//                                         item: item,
-//                                         isOwner: isOwner,
-//                                       ),
-//                                     ),
-//                               ),
-//                             );
-//                           },
-//                           child: Padding(
-//                             padding: const EdgeInsets.symmetric(vertical: 4),
-//                             child: ListTile(
-//                               contentPadding: const EdgeInsets.symmetric(
-//                                 horizontal: 16,
-//                               ),
-//                               leading: Icon(
-//                                 item.status == 'Completed'
-//                                     ? Icons.card_giftcard
-//                                     : item.isReserved
-//                                     ? Icons.check_circle
-//                                     : Icons.radio_button_unchecked,
-//                                 color:
-//                                     item.status == 'Completed'
-//                                         ? Colors.blue
-//                                         : item.isReserved
-//                                         ? Colors.green
-//                                         : Colors.deepPurple,
-//                                 size: 24,
-//                               ),
-//                               title: Text(
-//                                 item.name,
-//                                 style: TextStyle(
-//                                   fontWeight: FontWeight.w500,
-//                                   fontSize: 14,
-//                                   color:
-//                                       item.status == 'Completed'
-//                                           ? Colors.blue
-//                                           : Colors.black87,
-//                                   decoration:
-//                                       item.status == 'Completed'
-//                                           ? TextDecoration.lineThrough
-//                                           : TextDecoration.none,
-//                                 ),
-//                                 maxLines: 1,
-//                                 overflow: TextOverflow.ellipsis,
-//                               ),
-//                               trailing: const Icon(
-//                                 Icons.arrow_forward_ios,
-//                                 color: Colors.deepPurple,
-//                                 size: 14,
-//                               ),
-//                             ),
-//                           ),
-//                         );
-//                       },
-//                     );
-//                   } else if (state is WishlistLoadFailure) {
-//                     return ListView(
-//                       physics: const AlwaysScrollableScrollPhysics(),
-//                       children: [
-//                         Center(
-//                           child: Padding(
-//                             padding: const EdgeInsets.all(16.0),
-//                             child: Text(
-//                               'Не удалось загрузить список желаний.\nПотяните вниз, чтобы обновить список.',
-//                               style: const TextStyle(
-//                                 fontSize: 16,
-//                                 color: Colors.red,
-//                               ),
-//                               textAlign: TextAlign.center,
-//                             ),
-//                           ),
-//                         ),
-//                       ],
-//                     );
-//                   }
-//                   return ListView(
-//                     physics: const AlwaysScrollableScrollPhysics(),
-//                     children: const [
-//                       Center(
-//                         child: Padding(
-//                           padding: EdgeInsets.all(16.0),
-//                           child: Text(
-//                             'Потяните вниз, чтобы обновить список.',
-//                             style: TextStyle(
-//                               fontSize: 16,
-//                               color: Colors.black54,
-//                             ),
-//                             textAlign: TextAlign.center,
-//                           ),
-//                         ),
-//                       ),
-//                     ],
-//                   );
-//                 },
-//               ),
-//             ),
-//           ),
-//         ],
-//       ),
-//       floatingActionButton: const CreateWishlistButton(),
-//     );
-//   }
-// }
-
 class WishlistPage extends StatefulWidget {
   const WishlistPage({super.key});
 
@@ -259,7 +47,15 @@ class _WishlistPageState extends State<WishlistPage> {
             child: BlocBuilder<FamilyBloc, FamilyState>(
               builder: (context, state) {
                 if (state is FamilyLoadSuccess) {
-                  final familyMembers = state.members;
+                  final currentUserId =
+                      context.read<AuthenticationBloc>().state.user?.id;
+
+                  // Фильтруем текущего пользователя из списка членов семьи
+                  final familyMembers =
+                      state.members
+                          .where((member) => member.id != currentUserId)
+                          .toList();
+
                   final dropdownItems = [
                     const DropdownMenuItem<String>(
                       value: null,
@@ -345,64 +141,200 @@ class _WishlistPageState extends State<WishlistPage> {
                             context.read<AuthenticationBloc>().state.user?.id;
                         final isOwner = item.createdBy == currentUserId;
 
-                        return GestureDetector(
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder:
-                                    (_) => BlocProvider.value(
-                                      value: context.read<WishlistBloc>(),
-                                      child: WishlistDetailsDialog(
-                                        item: item,
-                                        isOwner: isOwner,
-                                      ),
+                        // return Padding(
+                        //   padding: const EdgeInsets.symmetric(vertical: 4),
+                        //   child: ListTile(
+                        //     contentPadding: const EdgeInsets.symmetric(
+                        //       horizontal: 16,
+                        //     ),
+                        //     title: Row(
+                        //       children: [
+                        //         Expanded(
+                        //           child: Text(
+                        //             item.name,
+                        //             style: const TextStyle(
+                        //               fontWeight: FontWeight.w500,
+                        //               fontSize: 14,
+                        //               color: Colors.black87,
+                        //             ),
+                        //             maxLines: 1,
+                        //             overflow: TextOverflow.ellipsis,
+                        //           ),
+                        //         ),
+                        //         // Отображение статуса
+                        //         Container(
+                        //           padding: const EdgeInsets.symmetric(
+                        //             horizontal: 8,
+                        //             vertical: 4,
+                        //           ),
+                        //           decoration: BoxDecoration(
+                        //             color: _getStatusColor(item.status),
+                        //             borderRadius: BorderRadius.circular(12),
+                        //           ),
+                        //           child: Text(
+                        //             _getStatusText(item.status),
+                        //             style: const TextStyle(
+                        //               fontSize: 12,
+                        //               fontWeight: FontWeight.bold,
+                        //               color: Colors.white,
+                        //             ),
+                        //           ),
+                        //         ),
+                        //       ],
+                        //     ),
+                        //     trailing: const Icon(
+                        //       Icons.arrow_forward_ios,
+                        //       color: Colors.deepPurple,
+                        //       size: 14,
+                        //     ),
+                        //     onTap: () {
+                        //       Navigator.of(context).push(
+                        //         MaterialPageRoute(
+                        //           builder:
+                        //               (_) => BlocProvider.value(
+                        //                 value: context.read<WishlistBloc>(),
+                        //                 child: WishlistDetailsDialog(
+                        //                   item: item,
+                        //                   isOwner: isOwner,
+                        //                 ),
+                        //               ),
+                        //         ),
+                        //       );
+                        //     },
+                        //   ),
+                        // );
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                            ),
+                            title: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    item.name,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 14,
+                                      color: Colors.black87,
                                     ),
-                              ),
-                            );
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4),
-                            child: ListTile(
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                              ),
-                              leading: Icon(
-                                item.status == 'Completed'
-                                    ? Icons.card_giftcard
-                                    : item.status == 'Reserved'
-                                    ? Icons.check_circle
-                                    : Icons.radio_button_unchecked,
-                                color:
-                                    item.status == 'Completed'
-                                        ? Colors.blue
-                                        : item.status == 'Reserved'
-                                        ? Colors.green
-                                        : Colors.deepPurple,
-                                size: 24,
-                              ),
-                              title: Text(
-                                item.name,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 14,
-                                  color:
-                                      item.status == 'Completed'
-                                          ? Colors.blue
-                                          : Colors.black87,
-                                  decoration:
-                                      item.status == 'Completed'
-                                          ? TextDecoration.lineThrough
-                                          : TextDecoration.none,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              trailing: const Icon(
-                                Icons.arrow_forward_ios,
-                                color: Colors.deepPurple,
-                                size: 14,
+                                // Отображение статуса
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: _getStatusColor(item.status),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    _getStatusText(item.status),
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            trailing: PopupMenuButton<String>(
+                              onSelected: (value) {
+                                print('Selected menu option: $value');
+                                if (value == 'Зарезервировать') {
+                                  final currentUserId =
+                                      context
+                                          .read<AuthenticationBloc>()
+                                          .state
+                                          .user
+                                          ?.id;
+                                  if (currentUserId != null) {
+                                    context.read<WishlistBloc>().add(
+                                      WishlistItemReserved(
+                                        id: item.id,
+                                        reservedBy: currentUserId,
+                                      ),
+                                    );
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Не удалось получить ID пользователя',
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                } else if (value == 'Отменить резервирование') {
+                                  context.read<WishlistBloc>().add(
+                                    WishlistItemReservationCancelled(
+                                      id: item.id,
+                                    ),
+                                  );
+                                } else if (value == 'Удалить') {
+                                  context.read<WishlistBloc>().add(
+                                    WishlistItemDeleted(id: item.id),
+                                  );
+                                }
+                              },
+                              itemBuilder: (context) {
+                                print('Building menu for item: ${item.name}');
+                                print(
+                                  'Item reservedBy: ${item.reservedBy.entries.first.value}',
+                                );
+                                print('Item status: ${item.status}');
+                                print(
+                                  'Current User ID: ${context.read<AuthenticationBloc>().state.user?.id}',
+                                );
+                                return [
+                                  if (item.status == 'Active' &&
+                                      item.reservedBy.entries.first.value == '')
+                                    const PopupMenuItem(
+                                      value: 'Зарезервировать',
+                                      child: Text('Зарезервировать'),
+                                    ),
+                                  if (item.status == 'Reserved' &&
+                                      item.reservedBy.entries.first.value ==
+                                          context
+                                              .read<AuthenticationBloc>()
+                                              .state
+                                              .user
+                                              ?.id)
+                                    const PopupMenuItem(
+                                      value: 'Отменить резервирование',
+                                      child: Text('Отменить резервирование'),
+                                    ),
+                                  if (isOwner)
+                                    const PopupMenuItem(
+                                      value: 'Удалить',
+                                      child: Text('Удалить'),
+                                    ),
+                                ];
+                              },
+                              icon: const Icon(
+                                Icons.more_vert,
+                                color: Colors.black54,
                               ),
                             ),
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder:
+                                      (_) => BlocProvider.value(
+                                        value: context.read<WishlistBloc>(),
+                                        child: WishlistDetailsDialog(
+                                          item: item,
+                                          isOwner: isOwner,
+                                        ),
+                                      ),
+                                ),
+                              );
+                            },
                           ),
                         );
                       },
@@ -453,5 +385,29 @@ class _WishlistPageState extends State<WishlistPage> {
       ),
       floatingActionButton: const CreateWishlistButton(),
     );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case 'Completed':
+        return Colors.green;
+      case 'Reserved':
+        return Colors.orange;
+      case 'Active':
+      default:
+        return Colors.deepPurple;
+    }
+  }
+
+  String _getStatusText(String status) {
+    switch (status) {
+      case 'Completed':
+        return 'Подарено';
+      case 'Reserved':
+        return 'Зарезервировано';
+      case 'Active':
+      default:
+        return 'Активно';
+    }
   }
 }

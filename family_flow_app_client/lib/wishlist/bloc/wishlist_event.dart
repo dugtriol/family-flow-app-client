@@ -38,7 +38,7 @@ class WishlistItemUpdateRequested extends WishlistEvent {
     required this.description,
     required this.link,
     required this.status,
-    required this.isReserved,
+    required this.isArchived,
   });
 
   final String id;
@@ -46,8 +46,36 @@ class WishlistItemUpdateRequested extends WishlistEvent {
   final String description;
   final String link;
   final String status;
-  final bool isReserved;
+  final bool isArchived;
 
   @override
-  List<Object> get props => [id, name, description, link, status, isReserved];
+  List<Object> get props => [id, name, description, link, status, isArchived];
+}
+
+class WishlistItemDeleted extends WishlistEvent {
+  final String id;
+
+  const WishlistItemDeleted({required this.id});
+
+  @override
+  List<Object> get props => [id];
+}
+
+class WishlistItemReserved extends WishlistEvent {
+  final String id;
+  final String reservedBy;
+
+  const WishlistItemReserved({required this.id, required this.reservedBy});
+
+  @override
+  List<Object> get props => [id, reservedBy];
+}
+
+class WishlistItemReservationCancelled extends WishlistEvent {
+  final String id;
+
+  const WishlistItemReservationCancelled({required this.id});
+
+  @override
+  List<Object> get props => [id];
 }

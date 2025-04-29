@@ -19,6 +19,9 @@ class WishlistBloc extends Bloc<WishlistEvent, WishlistState> {
     on<WishlistRequested>(_onWishlistRequested);
     on<WishlistItemCreateRequested>(_onWishlistItemCreateRequested);
     on<WishlistItemUpdateRequested>(_onWishlistItemUpdateRequested);
+    on<WishlistItemDeleted>(_onWishlistItemDeleted);
+    on<WishlistItemReserved>(_onWishlistItemReserved);
+    on<WishlistItemReservationCancelled>(_onWishlistItemReservationCancelled);
   }
 
   final WishlistRepository _wishlistRepository;
@@ -33,6 +36,15 @@ class WishlistBloc extends Bloc<WishlistEvent, WishlistState> {
     return [];
   }
 
+  String getUserName(String userId) {
+    final members = familyMembers; // Получаем список членов семьи
+    final user = members.firstWhere(
+      (member) => member.id == userId,
+      orElse: () => User.empty,
+    );
+    return user.name;
+  }
+
   Future<void> _onWishlistRequested(
     WishlistRequested event,
     Emitter<WishlistState> emit,
@@ -40,23 +52,15 @@ class WishlistBloc extends Bloc<WishlistEvent, WishlistState> {
     emit(WishlistLoading());
     try {
       print('_onWishlistRequested - Fetching wishlist items...');
-      final items = await _wishlistRepository.fetchWishlistItems();
-      print('_onWishlistRequested - Fetched ${items.length} wishlist items.');
-
-      // Фильтруем список по memberId, если он указан
-      final filteredItems =
+      final items =
           event.memberId != null
-              ? items.where((item) => item.createdBy == event.memberId).toList()
-              : items;
+              ? await _wishlistRepository.fetchWishlistItemsByFamilyUserID(
+                event.memberId!,
+              )
+              : await _wishlistRepository.fetchWishlistItems();
 
-      if (event.memberId != null) {
-        print(
-          '_onWishlistRequested - Filtered items by memberId: ${event.memberId}, '
-          'resulting in ${filteredItems.length} items.',
-        );
-      }
-
-      emit(WishlistLoadSuccess(filteredItems));
+      print('_onWishlistRequested - Fetched ${items.length} wishlist items.');
+      emit(WishlistLoadSuccess(items));
       print('_onWishlistRequested - Wishlist loaded successfully.');
     } catch (error) {
       print(
@@ -94,7 +98,7 @@ class WishlistBloc extends Bloc<WishlistEvent, WishlistState> {
         description: event.description,
         link: event.link,
         status: event.status,
-        isReserved: event.isReserved,
+        isArchived: event.isArchived,
       );
       print('Wishlist item with ID: ${event.id} updated successfully.');
 
@@ -107,6 +111,60 @@ class WishlistBloc extends Bloc<WishlistEvent, WishlistState> {
     } finally {
       // Обновляем список после завершения операции
       add(WishlistRequested());
+    }
+  }
+
+  Future<void> _onWishlistItemDeleted(
+    WishlistItemDeleted event,
+    Emitter<WishlistState> emit,
+  ) async {
+    try {
+      emit(WishlistLoading());
+      await _wishlistRepository.deleteWishlistItem(event.id);
+
+      // Перезапрашиваем список после удаления
+      final items = await _wishlistRepository.fetchWishlistItems();
+      emit(WishlistLoadSuccess(items));
+    } catch (error) {
+      print('Failed to delete wishlist item: $error');
+      emit(WishlistLoadFailure());
+    }
+  }
+
+  Future<void> _onWishlistItemReserved(
+    WishlistItemReserved event,
+    Emitter<WishlistState> emit,
+  ) async {
+    try {
+      emit(WishlistLoading());
+      await _wishlistRepository.updateReservedBy(
+        id: event.id,
+        reservedBy: event.reservedBy,
+      );
+
+      // Перезапрашиваем список после резервирования
+      final items = await _wishlistRepository.fetchWishlistItems();
+      emit(WishlistLoadSuccess(items));
+    } catch (error) {
+      print('Failed to reserve wishlist item: $error');
+      emit(WishlistLoadFailure());
+    }
+  }
+
+  Future<void> _onWishlistItemReservationCancelled(
+    WishlistItemReservationCancelled event,
+    Emitter<WishlistState> emit,
+  ) async {
+    try {
+      emit(WishlistLoading());
+      await _wishlistRepository.cancelUpdateReservedBy(event.id);
+
+      // Перезапрашиваем список после отмены резервирования
+      final items = await _wishlistRepository.fetchWishlistItems();
+      emit(WishlistLoadSuccess(items));
+    } catch (error) {
+      print('Failed to cancel reservation for wishlist item: $error');
+      emit(WishlistLoadFailure());
     }
   }
 }
