@@ -922,7 +922,7 @@ packages:
     source: hosted
     version: "1.4.0"
   user_api:
-    dependency: transitive
+    dependency: "direct main"
     description:
       path: "packages/user_api"
       relative: true

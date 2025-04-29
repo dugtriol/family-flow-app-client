@@ -47,6 +47,8 @@ dependencies:
   location: ^5.0.0
   yandex_mapkit: ^4.1.0
   permission_handler: ^12.0.0+1
+  user_api:
+    path: packages/user_api
   
 
 dev_dependencies:
