@@ -68,22 +68,4 @@ class UserRepository {
       rethrow;
     }
   }
-
-  /// Update user password
-  Future<void> updatePassword(String password) async {
-    final token = await _getJwtToken();
-    if (token == null) {
-      throw Exception('Token not found');
-    }
-
-    try {
-      await _userApiClient.updatePassword(
-        token,
-        UserUpdatePasswordInput(password: password),
-      );
-    } catch (e) {
-      print("updatePassword - error: $e");
-      rethrow;
-    }
-  }
 }

@@ -6,7 +6,7 @@ enum AuthenticationStatus { unknown, authenticated, unauthenticated }
 
 class AuthenticationRepository {
   AuthenticationRepository({AuthApiClient? authApiClient})
-      : _authApiClient = authApiClient ?? AuthApiClient();
+    : _authApiClient = authApiClient ?? AuthApiClient();
 
   final AuthApiClient _authApiClient;
   final _controller = StreamController<AuthenticationStatus>();
@@ -26,19 +26,16 @@ class AuthenticationRepository {
     yield* _controller.stream;
   }
 
-  Future<void> logIn({
-    required String email,
-    required String password,
-  }) async {
+  Future<void> logIn({required String email, required String password}) async {
     try {
       final signInForm = SignInForm(email: email, password: password);
-      print("login\n");
+      print("AuthenticationRepository - login\n");
       final token = await _authApiClient.login(signInForm);
-      print('token: $token');
+      print('AuthenticationRepository - token: $token');
       _jwtToken = token.jwt;
-      print("save token\n");
+      print("AuthenticationRepository - save token\n");
       await saveJwtToken(_jwtToken!);
-      print("save token done\n");
+      print("AuthenticationRepository - save token done\n");
       print("AuthenticationStatus.authenticated\n");
       _controller.add(AuthenticationStatus.authenticated);
     } catch (_) {
@@ -90,6 +87,27 @@ class AuthenticationRepository {
       return await _authApiClient.compareCode(email, code);
     } catch (_) {
       throw Exception('Failed to verify code');
+    }
+  }
+
+  Future<bool> checkUserExists(String email) async {
+    try {
+      return await _authApiClient.userExists(email);
+    } catch (error) {
+      throw Exception('Failed to check if user exists: $error');
+    }
+  }
+
+  /// Update user password
+  Future<void> updatePassword(String email, String password) async {
+    try {
+      await _authApiClient.updatePassword(
+        // token,
+        UserUpdatePasswordInput(email: email, password: password),
+      );
+    } catch (e) {
+      print("updatePassword - error: $e");
+      rethrow;
     }
   }
 

@@ -39,7 +39,12 @@ class UserApiClient {
   }
 
   Future<void> updateUser(String token, UserUpdateInput input) async {
+    print(
+      'user-api-updateUser: updateUser called with token: $token and input: ${input.toJson()}',
+    );
     final uri = Uri.parse('$_baseUrl/user');
+    print('user-api-updateUser: Constructed URI: $uri');
+
     final response = await _httpClient.put(
       uri,
       headers: {
@@ -48,29 +53,18 @@ class UserApiClient {
       },
       body: jsonEncode(input.toJson()),
     );
-
-    if (response.statusCode != 200) {
-      throw UserFetchFailure();
-    }
-  }
-
-  Future<void> updatePassword(
-    String token,
-    UserUpdatePasswordInput input,
-  ) async {
-    final uri = Uri.parse('$_baseUrl/user/password');
-    final response = await _httpClient.put(
-      uri,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-      body: jsonEncode(input.toJson()),
+    print(
+      'user-api-updateUser: Response received with status code: ${response.statusCode}',
     );
 
     if (response.statusCode != 200) {
+      print(
+        'user-api-updateUser: Response status code is not 200. Throwing UserFetchFailure.',
+      );
       throw UserFetchFailure();
     }
+
+    print('user-api-updateUser: updateUser completed successfully.');
   }
 
   void close() {
