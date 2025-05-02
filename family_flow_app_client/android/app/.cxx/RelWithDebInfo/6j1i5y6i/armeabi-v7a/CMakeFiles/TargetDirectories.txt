@@ -1,0 +1,2 @@
+/Users/aimandzhi/VScodeProjects/family-flow-app-client/family_flow_app_client/android/app/.cxx/RelWithDebInfo/6j1i5y6i/armeabi-v7a/CMakeFiles/edit_cache.dir
+/Users/aimandzhi/VScodeProjects/family-flow-app-client/family_flow_app_client/android/app/.cxx/RelWithDebInfo/6j1i5y6i/armeabi-v7a/CMakeFiles/rebuild_cache.dir

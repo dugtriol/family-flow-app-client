@@ -1,3 +1,5 @@
+package com.example.family_flow_app_client
+
 import android.app.Application
 
 import com.yandex.mapkit.MapKitFactory
