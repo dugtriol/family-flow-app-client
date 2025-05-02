@@ -1,45 +1,37 @@
 import 'package:flutter/material.dart';
 
 class NotificationsPage extends StatelessWidget {
-  const NotificationsPage({super.key});
+  final List<String> notifications;
+
+  const NotificationsPage({super.key, required this.notifications});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Настройки уведомлений'),
+        title: const Text('Уведомления'),
+        backgroundColor: Colors.deepPurple,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SwitchListTile(
-              title: const Text('Получать уведомления'),
-              value: true, // Здесь можно подключить состояние
-              onChanged: (value) {
-                // Логика изменения состояния уведомлений
-              },
-            ),
-            const Divider(),
-            SwitchListTile(
-              title: const Text('Уведомления о задачах'),
-              value: true, // Здесь можно подключить состояние
-              onChanged: (value) {
-                // Логика изменения состояния уведомлений о задачах
-              },
-            ),
-            const Divider(),
-            SwitchListTile(
-              title: const Text('Уведомления о событиях'),
-              value: false, // Здесь можно подключить состояние
-              onChanged: (value) {
-                // Логика изменения состояния уведомлений о событиях
-              },
-            ),
-          ],
-        ),
-      ),
+      body:
+          notifications.isEmpty
+              ? const Center(
+                child: Text(
+                  'Нет уведомлений',
+                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                ),
+              )
+              : ListView.builder(
+                itemCount: notifications.length,
+                itemBuilder: (context, index) {
+                  return ListTile(
+                    title: Text(notifications[index]),
+                    leading: const Icon(
+                      Icons.notifications,
+                      color: Colors.deepPurple,
+                    ),
+                  );
+                },
+              ),
     );
   }
 }
