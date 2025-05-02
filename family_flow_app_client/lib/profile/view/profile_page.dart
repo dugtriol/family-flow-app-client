@@ -143,7 +143,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         onTap: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (_) => const NotificationsPage(),
+                              builder: (_) => const NotificationsSettingsPage(),
                             ),
                           );
                         },
