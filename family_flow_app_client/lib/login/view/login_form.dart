@@ -1,12 +1,18 @@
+// ignore_for_file: use_build_context_synchronously
+
+import 'package:family_flow_app_client/notifications/notifications.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:formz/formz.dart';
+import 'package:notification_repository/notification_repository.dart';
 
 import '../bloc/login_bloc.dart';
 
 class LoginForm extends StatelessWidget {
-  const LoginForm({super.key});
+  final VoidCallback? onLoginSuccess;
+  LoginForm({super.key, this.onLoginSuccess});
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +35,7 @@ class LoginForm extends StatelessWidget {
             const Padding(padding: EdgeInsets.all(12)),
             _PasswordInput(),
             const Padding(padding: EdgeInsets.all(12)),
-            _LoginButton(),
+            _LoginButton(onLoginSuccess: onLoginSuccess),
           ],
         ),
       ),
@@ -79,6 +85,10 @@ class _PasswordInput extends StatelessWidget {
 }
 
 class _LoginButton extends StatelessWidget {
+  final VoidCallback? onLoginSuccess;
+
+  const _LoginButton({this.onLoginSuccess});
+
   @override
   Widget build(BuildContext context) {
     final isInProgressOrSuccess = context.select(
@@ -91,9 +101,34 @@ class _LoginButton extends StatelessWidget {
 
     return ElevatedButton(
       key: const Key('loginForm_continue_raisedButton'),
-      onPressed: isValid
-          ? () => context.read<LoginBloc>().add(LoginSubmitted())
-          : null,
+      onPressed:
+          isValid
+              ? () async {
+                // Выполняем вход
+                context.read<LoginBloc>().add(LoginSubmitted());
+
+                // Подписываемся на изменения состояния
+                context.read<LoginBloc>().stream.listen((state) async {
+                  if (state.status.isSuccess) {
+                    // Вход выполнен успешно
+                    onLoginSuccess?.call();
+
+                    // Получаем FCM токен
+                    final fcmToken =
+                        await FirebaseMessaging.instance.getToken();
+                    if (fcmToken != null) {
+                      // Отправляем события в NotificationsBloc
+                      context.read<NotificationsBloc>().add(
+                        SaveFcmToken(fcmToken),
+                      );
+                      context.read<NotificationsBloc>().add(
+                        SendLoginNotification(),
+                      );
+                    }
+                  }
+                });
+              }
+              : null,
       child: const Text('Войти'),
     );
   }
