@@ -8,7 +8,7 @@ class UserApiClient {
   UserApiClient({http.Client? httpClient})
     : _httpClient = httpClient ?? http.Client();
 
-  static const _baseUrl = 'http://localhost:8080/api';
+  static const _baseUrl = 'http://10.0.2.2:8080/api';
   final http.Client _httpClient;
 
   Future<UserGet> getUser(String token) async {

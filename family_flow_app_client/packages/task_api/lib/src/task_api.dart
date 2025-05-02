@@ -7,9 +7,9 @@ class TaskCreateFailure implements Exception {}
 
 class TaskApiClient {
   TaskApiClient({http.Client? httpClient})
-      : _httpClient = httpClient ?? http.Client();
+    : _httpClient = httpClient ?? http.Client();
 
-  static const _baseUrl = 'http://localhost:8080/api';
+  static const _baseUrl = 'http://10.0.2.2:8080/api';
   final http.Client _httpClient;
 
   Future<String> createTask(TaskCreate task, String token) async {
@@ -20,12 +20,14 @@ class TaskApiClient {
     final jsonen = jsonEncode(task.toJson());
     print('jsonen: $jsonen');
     print('token: $token');
-    final response = await _httpClient.post(uri,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonen);
+    final response = await _httpClient.post(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonen,
+    );
     print('Response received with status code: ${response.statusCode}');
 
     if (response.statusCode != 200) {
