@@ -18,6 +18,7 @@ class FamilyBloc extends Bloc<FamilyEvent, FamilyState> {
     on<FamilyJoinRequested>(_onFamilyJoinRequested);
     on<FamilyAddMemberRequested>(_onFamilyAddMemberRequested);
     on<FamilyRemoveMemberRequested>(_onFamilyRemoveMemberRequested);
+    on<FamilyInviteMemberRequested>(_onFamilyInviteMemberRequested);
   }
 
   final FamilyRepository _familyRepository;
@@ -82,7 +83,11 @@ class FamilyBloc extends Bloc<FamilyEvent, FamilyState> {
     try {
       final user = await _familyRepository.getCurrentUser();
       await _familyRepository.addMemberToFamily(
-        InputAddMemberToFamily(emailUser: event.email, familyId: user.familyId),
+        InputAddMemberToFamily(
+          emailUser: event.email,
+          familyId: user.familyId,
+          role: event.role,
+        ),
       );
       add(FamilyRequested());
     } catch (e) {
@@ -101,6 +106,26 @@ class FamilyBloc extends Bloc<FamilyEvent, FamilyState> {
         event.familyId,
       );
       add(FamilyRequested()); // Обновляем список семьи после удаления
+    } catch (e) {
+      emit(FamilyLoadFailure(error: e.toString()));
+    }
+  }
+
+  Future<void> _onFamilyInviteMemberRequested(
+    FamilyInviteMemberRequested event,
+    Emitter<FamilyState> emit,
+  ) async {
+    emit(FamilyLoading());
+    try {
+      final user = await _familyRepository.getCurrentUser();
+      await _familyRepository.inviteMemberToFamily(
+        InputAddMemberToFamily(
+          emailUser: event.email,
+          familyId: user.familyId,
+          role: event.role,
+        ),
+      );
+      add(FamilyRequested()); // Обновляем данные семьи
     } catch (e) {
       emit(FamilyLoadFailure(error: e.toString()));
     }

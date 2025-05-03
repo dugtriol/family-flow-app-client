@@ -31,7 +31,7 @@ class FamilyAddMemberRequested extends FamilyEvent {
   final String email;
   final String role;
 
-  FamilyAddMemberRequested({required this.email, required this.role});
+  const FamilyAddMemberRequested({required this.email, required this.role});
 
   @override
   List<Object> get props => [email, role];
@@ -48,4 +48,14 @@ class FamilyRemoveMemberRequested extends FamilyEvent {
 
   @override
   List<Object> get props => [memberId, familyId];
+}
+
+class FamilyInviteMemberRequested extends FamilyEvent {
+  final String email;
+  final String role;
+
+  const FamilyInviteMemberRequested({required this.email, required this.role});
+
+  @override
+  List<Object> get props => [email, role];
 }
