@@ -33,6 +33,10 @@ class ShoppingRepository {
     }
   }
 
+  String get familyId {
+    return _familyId ?? '';
+  }
+
   /// Метод для обновления familyId
   void updateFamilyId(String? familyId) {
     _familyId = familyId;
