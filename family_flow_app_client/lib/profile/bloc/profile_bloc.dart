@@ -85,6 +85,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       AuthenticationProfileUpdateRequested(
         name: event.name,
         email: event.email,
+        role: event.role,
       ),
     );
 

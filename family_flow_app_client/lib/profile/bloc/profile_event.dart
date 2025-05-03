@@ -18,11 +18,16 @@ class ProfileReset extends ProfileEvent {}
 
 /// Событие для обновления профиля
 class ProfileUpdateRequested extends ProfileEvent {
-  const ProfileUpdateRequested({required this.name, required this.email});
+  const ProfileUpdateRequested({
+    required this.name,
+    required this.email,
+    required this.role,
+  });
 
   final String name;
   final String email;
+  final String role;
 
   @override
-  List<Object?> get props => [name, email];
+  List<Object?> get props => [name, email, role];
 }

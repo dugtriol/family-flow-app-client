@@ -17,6 +17,7 @@ class _ProfileDetailsPageState extends State<ProfileDetailsPage> {
   late TextEditingController emailController;
   late String initialName;
   late String initialEmail;
+  late String _selectedRole;
 
   @override
   void initState() {
@@ -27,11 +28,16 @@ class _ProfileDetailsPageState extends State<ProfileDetailsPage> {
       emailController = TextEditingController(text: profileState.user.email);
       initialName = profileState.user.name;
       initialEmail = profileState.user.email;
+      _selectedRole = profileState.user.role;
+      print(
+        'ProfileLoadSuccess - _ProfileDetailsPageState: ${profileState.user.name}, ${profileState.user.email}, ${profileState.user.role}',
+      );
     } else {
       nameController = TextEditingController();
       emailController = TextEditingController();
       initialName = '';
       initialEmail = '';
+      _selectedRole = 'Parent';
     }
   }
 
@@ -48,7 +54,11 @@ class _ProfileDetailsPageState extends State<ProfileDetailsPage> {
 
     if (currentName != initialName || currentEmail != initialEmail) {
       context.read<ProfileBloc>().add(
-        ProfileUpdateRequested(name: currentName, email: currentEmail),
+        ProfileUpdateRequested(
+          name: currentName,
+          email: currentEmail,
+          role: _selectedRole,
+        ),
       );
 
       // Обновляем начальное значение
@@ -192,19 +202,54 @@ class _ProfileDetailsPageState extends State<ProfileDetailsPage> {
                             const Icon(Icons.work, color: Colors.deepPurple),
                             const SizedBox(width: 16),
                             Expanded(
-                              child: TextField(
-                                controller: TextEditingController(
-                                  text: user.role,
-                                ),
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.black87,
-                                ),
-                                decoration: const InputDecoration(
-                                  border: InputBorder.none,
-                                  hintText: 'Роль',
-                                ),
-                                readOnly: true,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const SizedBox(height: 8),
+                                  ToggleButtons(
+                                    isSelected: [
+                                      _selectedRole == 'Parent',
+                                      _selectedRole == 'Child',
+                                    ],
+                                    onPressed: (index) {
+                                      setState(() {
+                                        _selectedRole =
+                                            index == 0 ? 'Parent' : 'Child';
+                                      });
+                                    },
+                                    borderRadius: BorderRadius.circular(8),
+                                    selectedColor: Colors.white,
+                                    fillColor: Colors.deepPurple,
+                                    color: Colors.deepPurple,
+                                    constraints: const BoxConstraints(
+                                      minHeight: 40,
+                                      minWidth: 120, // Размер кнопок
+                                    ),
+                                    children: const [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            '👨‍👩‍👧 Родитель',
+                                            style: TextStyle(fontSize: 14),
+                                          ),
+                                        ],
+                                      ),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            '🧒 Ребёнок',
+                                            style: TextStyle(fontSize: 14),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                ],
                               ),
                             ),
                           ],
