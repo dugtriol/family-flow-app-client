@@ -158,6 +158,28 @@ class FamilyApiClient {
     }
   }
 
+  /// Method to add a member to a family
+  Future<void> inviteMemberToFamily(
+    InputAddMemberToFamily input,
+    String token,
+  ) async {
+    final uri = Uri.parse('$_baseUrl/family/invite');
+    final jsonBody = jsonEncode(input.toJson());
+
+    final response = await _httpClient.post(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonBody,
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to invite member to family: ${response.body}');
+    }
+  }
+
   void close() {
     _httpClient.close();
   }

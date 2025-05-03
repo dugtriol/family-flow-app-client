@@ -11,6 +11,7 @@ InputAddMemberToFamily _$InputAddMemberToFamilyFromJson(
 ) => InputAddMemberToFamily(
   emailUser: json['email_user'] as String,
   familyId: json['family_id'] as String,
+  role: json['role'] as String,
 );
 
 Map<String, dynamic> _$InputAddMemberToFamilyToJson(
@@ -18,4 +19,5 @@ Map<String, dynamic> _$InputAddMemberToFamilyToJson(
 ) => <String, dynamic>{
   'email_user': instance.emailUser,
   'family_id': instance.familyId,
+  'role': instance.role,
 };

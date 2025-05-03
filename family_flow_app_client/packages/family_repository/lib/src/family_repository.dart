@@ -124,5 +124,21 @@ class FamilyRepository {
     }
   }
 
+  /// Добавление участника в семью
+  Future<void> inviteMemberToFamily(InputAddMemberToFamily input) async {
+    try {
+      final token = await _getJwtToken();
+      if (token == null) {
+        throw Exception('JWT token is missing');
+      }
+
+      await _familyApiClient.inviteMemberToFamily(input, token);
+      final user = await getCurrentUser();
+      _controller.add(await fetchFamilyMembers(user.familyId));
+    } catch (_) {
+      throw Exception('Failed to add member to family');
+    }
+  }
+
   void dispose() => _controller.close();
 }

@@ -11,9 +11,12 @@ class InputAddMemberToFamily {
   @JsonKey(name: 'family_id')
   final String familyId;
 
+  final String role;
+
   InputAddMemberToFamily({
     required this.emailUser,
     required this.familyId,
+    required this.role,
   });
 
   factory InputAddMemberToFamily.fromJson(Map<String, dynamic> json) =>
