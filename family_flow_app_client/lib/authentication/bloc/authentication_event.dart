@@ -14,12 +14,14 @@ final class AuthenticationUserRefreshed
 final class AuthenticationProfileUpdateRequested extends AuthenticationEvent {
   final String name;
   final String email;
+  final String role;
 
   const AuthenticationProfileUpdateRequested({
     required this.name,
     required this.email,
+    required this.role,
   });
 
   @override
-  List<Object?> get props => [name, email];
+  List<Object?> get props => [name, email, role];
 }

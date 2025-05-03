@@ -120,7 +120,7 @@ class AuthenticationBloc
           UserUpdateInput(
             name: event.name,
             email: event.email,
-            role: user.role,
+            role: event.role,
           ),
         );
         print('Profile updated successfully for user: ${user.id}');
