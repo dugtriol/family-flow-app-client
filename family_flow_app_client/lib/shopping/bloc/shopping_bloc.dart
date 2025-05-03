@@ -53,6 +53,10 @@ class ShoppingBloc extends Bloc<ShoppingEvent, ShoppingState> {
   ) async {
     emit(ShoppingLoading());
     try {
+      if (_shoppingRepository.familyId == '') {
+        emit(ShoppingNoFamily());
+        return;
+      }
       print('Fetching public shopping items...');
       final items = await _shoppingRepository.fetchPublicShoppingItems();
       print('Successfully fetched ${items.length} items.');
@@ -69,6 +73,10 @@ class ShoppingBloc extends Bloc<ShoppingEvent, ShoppingState> {
   ) async {
     try {
       emit(ShoppingLoading());
+      if (_shoppingRepository.familyId == '') {
+        emit(ShoppingNoFamily());
+        return;
+      }
       await _shoppingRepository.createShoppingItem(
         title: event.title,
         description: event.description,
@@ -86,6 +94,10 @@ class ShoppingBloc extends Bloc<ShoppingEvent, ShoppingState> {
     Emitter<ShoppingState> emit,
   ) async {
     emit(ShoppingLoading());
+    if (_shoppingRepository.familyId == '') {
+      emit(ShoppingNoFamily());
+      return;
+    }
     try {
       final items =
           event.isPublic

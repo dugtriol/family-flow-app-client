@@ -45,49 +45,61 @@ class ShoppingView extends StatelessWidget {
           children: [
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: ToggleButtons(
-                isSelected: [
-                  context.select(
-                    (ShoppingBloc bloc) =>
-                        bloc.state is ShoppingLoadSuccess &&
-                        (bloc.state as ShoppingLoadSuccess).isPublic,
-                  ),
-                  context.select(
-                    (ShoppingBloc bloc) =>
-                        bloc.state is ShoppingLoadSuccess &&
-                        !(bloc.state as ShoppingLoadSuccess).isPublic,
-                  ),
-                ],
-                onPressed: (index) {
-                  final isPublic = index == 0;
-                  context.read<ShoppingBloc>().add(
-                    ShoppingTypeChanged(isPublic),
+              child: BlocBuilder<ShoppingBloc, ShoppingState>(
+                builder: (context, state) {
+                  final isDisabled =
+                      state is ShoppingNoFamily; // Проверяем состояние
+
+                  return ToggleButtons(
+                    isSelected: [
+                      context.select(
+                        (ShoppingBloc bloc) =>
+                            bloc.state is ShoppingLoadSuccess &&
+                            (bloc.state as ShoppingLoadSuccess).isPublic,
+                      ),
+                      context.select(
+                        (ShoppingBloc bloc) =>
+                            bloc.state is ShoppingLoadSuccess &&
+                            !(bloc.state as ShoppingLoadSuccess).isPublic,
+                      ),
+                    ],
+                    onPressed:
+                        isDisabled
+                            ? null // Если состояние ShoppingNoFamily, отключаем кнопки
+                            : (index) {
+                              final isPublic = index == 0;
+                              context.read<ShoppingBloc>().add(
+                                ShoppingTypeChanged(isPublic),
+                              );
+                            },
+                    disabledColor:
+                        Colors.grey, // Цвет кнопок, если они отключены
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Text(
+                          'Доступны всем',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Text(
+                          'Личные',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ),
+                    ],
                   );
                 },
-                children: const [
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Text(
-                      'Доступны всем',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black87,
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Text(
-                      'Личные',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black87,
-                      ),
-                    ),
-                  ),
-                ],
               ),
             ),
             Expanded(
@@ -95,6 +107,14 @@ class ShoppingView extends StatelessWidget {
                 builder: (context, state) {
                   if (state is ShoppingLoading) {
                     return const Center(child: CircularProgressIndicator());
+                  } else if (state is ShoppingNoFamily) {
+                    return const Center(
+                      child: Text(
+                        'Вы не присоединены к семье. Создайте семью или присоединитесь к существующей.',
+                        style: TextStyle(fontSize: 16, color: Colors.black54),
+                        textAlign: TextAlign.center,
+                      ),
+                    );
                   } else if (state is ShoppingLoadSuccess) {
                     if (state.items.isEmpty) {
                       return const Center(

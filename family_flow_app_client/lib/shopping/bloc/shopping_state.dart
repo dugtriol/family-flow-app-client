@@ -22,3 +22,8 @@ class ShoppingLoadSuccess extends ShoppingState {
 }
 
 class ShoppingLoadFailure extends ShoppingState {}
+
+class ShoppingNoFamily extends ShoppingState {
+  @override
+  List<Object> get props => [];
+}
