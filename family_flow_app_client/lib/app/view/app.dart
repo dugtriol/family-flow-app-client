@@ -1,4 +1,5 @@
 import 'package:authentication_repository/authentication_repository.dart';
+import 'package:chats_repository/chats_repository.dart';
 import 'package:family_repository/family_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -10,6 +11,7 @@ import 'package:user_repository/user_repository.dart';
 import 'package:wishlist_repository/wishlist_repository.dart';
 
 import '../../authentication/authentication.dart';
+import '../../chats/chats.dart';
 import '../../family/family.dart';
 import '../../home/view/view.dart';
 import '../../login/view/view.dart';
@@ -35,6 +37,9 @@ class App extends StatelessWidget {
         RepositoryProvider(create: (_) => ShoppingRepository()),
         RepositoryProvider(create: (_) => WishlistRepository()),
         RepositoryProvider(create: (_) => NotificationRepository()),
+        RepositoryProvider(
+          create: (_) => ChatsRepository(apiUrl: 'ws://10.0.2.2:8080/ws'),
+        ),
       ],
       child: MultiBlocProvider(
         providers: [
@@ -61,6 +66,11 @@ class App extends StatelessWidget {
                   notificationRepository:
                       context.read<NotificationRepository>(),
                 ),
+          ),
+          BlocProvider(
+            create:
+                (context) =>
+                    ChatsBloc(chatsRepository: context.read<ChatsRepository>()),
           ),
         ],
         child: const AppView(),
