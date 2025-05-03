@@ -51,6 +51,14 @@ class WishlistBloc extends Bloc<WishlistEvent, WishlistState> {
   ) async {
     emit(WishlistLoading());
     try {
+      // if (_wishlistRepository.familyId == '') {
+      //   print(
+      //     '_onWishlistRequested - No family ID, loading personal wishlist...',
+      //   );
+      //   final items = await _wishlistRepository.fetchWishlistItems();
+      //   emit(WishlistLoadSuccess(items));
+      //   return;
+      // }
       print('_onWishlistRequested - Fetching wishlist items...');
       final items =
           event.memberId != null

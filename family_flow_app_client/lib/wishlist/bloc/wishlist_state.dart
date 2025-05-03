@@ -21,3 +21,8 @@ class WishlistLoadSuccess extends WishlistState {
 }
 
 class WishlistLoadFailure extends WishlistState {}
+
+class WishlistNoFamily extends WishlistState {
+  @override
+  List<Object> get props => [];
+}

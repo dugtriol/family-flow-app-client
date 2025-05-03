@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:wishlist_repository/wishlist_repository.dart';
 import '../../authentication/authentication.dart';
 import '../../family/family.dart';
 import '../bloc/wishlist_bloc.dart';
@@ -37,11 +38,13 @@ class _WishlistPageState extends State<WishlistPage> {
 
   @override
   Widget build(BuildContext context) {
+    final wishlistRepository = context.read<WishlistRepository>();
     return Scaffold(
       backgroundColor: Colors.white,
       body: Column(
         children: [
           // DropdownButton для выбора члена семьи
+          // if (wishlistRepository.familyId != '')
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: BlocBuilder<FamilyBloc, FamilyState>(
@@ -140,69 +143,6 @@ class _WishlistPageState extends State<WishlistPage> {
                         final currentUserId =
                             context.read<AuthenticationBloc>().state.user?.id;
                         final isOwner = item.createdBy == currentUserId;
-
-                        // return Padding(
-                        //   padding: const EdgeInsets.symmetric(vertical: 4),
-                        //   child: ListTile(
-                        //     contentPadding: const EdgeInsets.symmetric(
-                        //       horizontal: 16,
-                        //     ),
-                        //     title: Row(
-                        //       children: [
-                        //         Expanded(
-                        //           child: Text(
-                        //             item.name,
-                        //             style: const TextStyle(
-                        //               fontWeight: FontWeight.w500,
-                        //               fontSize: 14,
-                        //               color: Colors.black87,
-                        //             ),
-                        //             maxLines: 1,
-                        //             overflow: TextOverflow.ellipsis,
-                        //           ),
-                        //         ),
-                        //         // Отображение статуса
-                        //         Container(
-                        //           padding: const EdgeInsets.symmetric(
-                        //             horizontal: 8,
-                        //             vertical: 4,
-                        //           ),
-                        //           decoration: BoxDecoration(
-                        //             color: _getStatusColor(item.status),
-                        //             borderRadius: BorderRadius.circular(12),
-                        //           ),
-                        //           child: Text(
-                        //             _getStatusText(item.status),
-                        //             style: const TextStyle(
-                        //               fontSize: 12,
-                        //               fontWeight: FontWeight.bold,
-                        //               color: Colors.white,
-                        //             ),
-                        //           ),
-                        //         ),
-                        //       ],
-                        //     ),
-                        //     trailing: const Icon(
-                        //       Icons.arrow_forward_ios,
-                        //       color: Colors.deepPurple,
-                        //       size: 14,
-                        //     ),
-                        //     onTap: () {
-                        //       Navigator.of(context).push(
-                        //         MaterialPageRoute(
-                        //           builder:
-                        //               (_) => BlocProvider.value(
-                        //                 value: context.read<WishlistBloc>(),
-                        //                 child: WishlistDetailsDialog(
-                        //                   item: item,
-                        //                   isOwner: isOwner,
-                        //                 ),
-                        //               ),
-                        //         ),
-                        //       );
-                        //     },
-                        //   ),
-                        // );
                         return Padding(
                           padding: const EdgeInsets.symmetric(vertical: 4),
                           child: ListTile(
