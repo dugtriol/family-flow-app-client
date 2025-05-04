@@ -5,3 +5,4 @@ export 'create_chat_input.dart';
 export 'add_participant_input.dart';
 export 'message.dart';
 export 'chat.dart';
+export 'create_chat_with_participants_input.dart';
