@@ -37,9 +37,7 @@ class App extends StatelessWidget {
         RepositoryProvider(create: (_) => ShoppingRepository()),
         RepositoryProvider(create: (_) => WishlistRepository()),
         RepositoryProvider(create: (_) => NotificationRepository()),
-        RepositoryProvider(
-          create: (_) => ChatsRepository(apiUrl: 'ws://10.0.2.2:8080/ws'),
-        ),
+        RepositoryProvider(create: (_) => ChatsRepository()),
       ],
       child: MultiBlocProvider(
         providers: [

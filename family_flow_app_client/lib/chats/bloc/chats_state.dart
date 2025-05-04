@@ -7,17 +7,20 @@ abstract class ChatsState extends Equatable {
   List<Object> get props => [];
 }
 
+/// Начальное состояние
 class ChatsInitial extends ChatsState {}
 
+/// Состояние успешной загрузки чатов
 class ChatsLoadSuccess extends ChatsState {
-  final List<Message> messages;
+  final List<Chat> chats;
 
-  const ChatsLoadSuccess(this.messages);
+  const ChatsLoadSuccess(this.chats);
 
   @override
-  List<Object> get props => [messages];
+  List<Object> get props => [chats];
 }
 
+/// Состояние ошибки
 class ChatsLoadFailure extends ChatsState {
   final String error;
 

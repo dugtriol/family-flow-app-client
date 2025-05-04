@@ -12,51 +12,79 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
   ChatsBloc({required ChatsRepository chatsRepository})
     : _chatsRepository = chatsRepository,
       super(ChatsInitial()) {
-    _chatsRepository.messages.listen((response) {
-      if (response.status == 'success' && response.data != null) {
-        final message = Message.fromJson(response.data!);
-        add(ChatsMessageReceived(message));
-      } else {
-        add(ChatsErrorOccurred(response.message ?? 'Unknown error'));
-      }
-    });
-
+    on<ChatsLoad>(_onLoadChats);
     on<ChatsCreateChat>(_onCreateChat);
+    on<ChatsAddParticipant>(_onAddParticipant);
     on<ChatsSendMessage>(_onSendMessage);
-    on<ChatsMessageReceived>(_onMessageReceived);
-    on<ChatsErrorOccurred>(_onErrorOccurred);
+    on<ChatsCreateChatWithParticipants>(_onCreateChatWithParticipants);
   }
 
-  void _onSendMessage(ChatsSendMessage event, Emitter<ChatsState> emit) {
-    _chatsRepository.sendMessage(
-      chatId: event.chatId,
-      senderId: event.senderId,
-      content: event.content,
-    );
-  }
-
-  void _onMessageReceived(
-    ChatsMessageReceived event,
-    Emitter<ChatsState> emit,
-  ) {
-    if (state is ChatsLoadSuccess) {
-      final currentState = state as ChatsLoadSuccess;
-      emit(ChatsLoadSuccess([...currentState.messages, event.message]));
-    } else {
-      emit(ChatsLoadSuccess([event.message]));
+  /// Загрузка чатов
+  Future<void> _onLoadChats(ChatsLoad event, Emitter<ChatsState> emit) async {
+    try {
+      final chats = await _chatsRepository.getChatsByUserID();
+      emit(ChatsLoadSuccess(chats));
+    } catch (e) {
+      emit(ChatsLoadFailure(e.toString()));
     }
   }
 
-  void _onErrorOccurred(ChatsErrorOccurred event, Emitter<ChatsState> emit) {
-    emit(ChatsLoadFailure(event.error));
-  }
-
-  void _onCreateChat(ChatsCreateChat event, Emitter<ChatsState> emit) async {
+  /// Создание чата
+  Future<void> _onCreateChat(
+    ChatsCreateChat event,
+    Emitter<ChatsState> emit,
+  ) async {
     try {
       await _chatsRepository.createChat(event.name);
-      // Можно обновить состояние или оставить как есть
+      add(const ChatsLoad()); // Перезагрузка чатов после создания
     } catch (e) {
-      add(ChatsErrorOccurred(e.toString()));
+      emit(ChatsLoadFailure(e.toString()));
+    }
+  }
+
+  /// Добавление участника в чат
+  Future<void> _onAddParticipant(
+    ChatsAddParticipant event,
+    Emitter<ChatsState> emit,
+  ) async {
+    try {
+      await _chatsRepository.addParticipant(event.chatId, event.userId);
+      add(const ChatsLoad()); // Перезагрузка чатов после добавления участника
+    } catch (e) {
+      emit(ChatsLoadFailure(e.toString()));
+    }
+  }
+
+  /// Отправка сообщения
+  Future<void> _onSendMessage(
+    ChatsSendMessage event,
+    Emitter<ChatsState> emit,
+  ) async {
+    try {
+      await _chatsRepository.sendMessage(
+        chatId: event.chatId,
+        senderId: event.senderId,
+        content: event.content,
+      );
+    } catch (e) {
+      emit(ChatsLoadFailure(e.toString()));
+    }
+  }
+
+  /// Создание чата с участниками
+  Future<void> _onCreateChatWithParticipants(
+    ChatsCreateChatWithParticipants event,
+    Emitter<ChatsState> emit,
+  ) async {
+    try {
+      print('Создание чата с участниками: ${event.participantIds}');
+      await _chatsRepository.createChatWithParticipants(
+        name: event.name,
+        participantIds: event.participantIds,
+      );
+      add(const ChatsLoad()); // Перезагрузка чатов после создания
+    } catch (e) {
+      emit(ChatsLoadFailure(e.toString()));
     }
   }
 

@@ -7,6 +7,12 @@ abstract class ChatsEvent extends Equatable {
   List<Object> get props => [];
 }
 
+/// Загрузка чатов
+class ChatsLoad extends ChatsEvent {
+  const ChatsLoad();
+}
+
+/// Создание чата
 class ChatsCreateChat extends ChatsEvent {
   final String name;
 
@@ -16,6 +22,18 @@ class ChatsCreateChat extends ChatsEvent {
   List<Object> get props => [name];
 }
 
+/// Добавление участника в чат
+class ChatsAddParticipant extends ChatsEvent {
+  final String chatId;
+  final String userId;
+
+  const ChatsAddParticipant({required this.chatId, required this.userId});
+
+  @override
+  List<Object> get props => [chatId, userId];
+}
+
+/// Отправка сообщения
 class ChatsSendMessage extends ChatsEvent {
   final String chatId;
   final String senderId;
@@ -31,20 +49,16 @@ class ChatsSendMessage extends ChatsEvent {
   List<Object> get props => [chatId, senderId, content];
 }
 
-class ChatsMessageReceived extends ChatsEvent {
-  final Message message;
+/// Событие для создания чата с участниками
+class ChatsCreateChatWithParticipants extends ChatsEvent {
+  final String name;
+  final List<String> participantIds;
 
-  const ChatsMessageReceived(this.message);
-
-  @override
-  List<Object> get props => [message];
-}
-
-class ChatsErrorOccurred extends ChatsEvent {
-  final String error;
-
-  const ChatsErrorOccurred(this.error);
+  const ChatsCreateChatWithParticipants({
+    required this.name,
+    required this.participantIds,
+  });
 
   @override
-  List<Object> get props => [error];
+  List<Object> get props => [name, participantIds];
 }
