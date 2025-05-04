@@ -15,8 +15,9 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
     on<ChatsLoad>(_onLoadChats);
     on<ChatsCreateChat>(_onCreateChat);
     on<ChatsAddParticipant>(_onAddParticipant);
-    on<ChatsSendMessage>(_onSendMessage);
+    // on<ChatsSendMessage>(_onSendMessage);
     on<ChatsCreateChatWithParticipants>(_onCreateChatWithParticipants);
+    on<ChatsLoadMessages>(_onLoadMessages);
   }
 
   /// Загрузка чатов
@@ -56,20 +57,20 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
   }
 
   /// Отправка сообщения
-  Future<void> _onSendMessage(
-    ChatsSendMessage event,
-    Emitter<ChatsState> emit,
-  ) async {
-    try {
-      await _chatsRepository.sendMessage(
-        chatId: event.chatId,
-        senderId: event.senderId,
-        content: event.content,
-      );
-    } catch (e) {
-      emit(ChatsLoadFailure(e.toString()));
-    }
-  }
+  // Future<void> _onSendMessage(
+  //   ChatsSendMessage event,
+  //   Emitter<ChatsState> emit,
+  // ) async {
+  //   try {
+  //     await _chatsRepository.sendMessage(
+  //       chatId: event.chatId,
+  //       senderId: event.senderId,
+  //       content: event.content,
+  //     );
+  //   } catch (e) {
+  //     emit(ChatsLoadFailure(e.toString()));
+  //   }
+  // }
 
   /// Создание чата с участниками
   Future<void> _onCreateChatWithParticipants(
@@ -83,6 +84,23 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
         participantIds: event.participantIds,
       );
       add(const ChatsLoad()); // Перезагрузка чатов после создания
+    } catch (e) {
+      emit(ChatsLoadFailure(e.toString()));
+    }
+  }
+
+  /// Обработка события загрузки сообщений
+  Future<void> _onLoadMessages(
+    ChatsLoadMessages event,
+    Emitter<ChatsState> emit,
+  ) async {
+    try {
+      final messages = await _chatsRepository.getMessagesByChatID(event.chatId);
+      emit(ChatsMessagesLoadSuccess(messages));
+
+      // После загрузки сообщений возвращаемся к списку чатов
+      final chats = await _chatsRepository.getChatsByUserID();
+      emit(ChatsLoadSuccess(chats));
     } catch (e) {
       emit(ChatsLoadFailure(e.toString()));
     }

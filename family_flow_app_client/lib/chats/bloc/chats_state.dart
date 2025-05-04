@@ -29,3 +29,13 @@ class ChatsLoadFailure extends ChatsState {
   @override
   List<Object> get props => [error];
 }
+
+/// Состояние успешной загрузки сообщений
+class ChatsMessagesLoadSuccess extends ChatsState {
+  final List<Message> messages;
+
+  const ChatsMessagesLoadSuccess(this.messages);
+
+  @override
+  List<Object> get props => [messages];
+}

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:chats_api/chats_api.dart';
 import 'package:family_flow_app_client/main.dart' show webSocketService;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -8,6 +9,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/status.dart' as status;
 
 import '../../authentication/authentication.dart';
+import '../bloc/chats_bloc.dart';
 
 class ChatDetailsPage extends StatefulWidget {
   final String chatId;
@@ -31,23 +33,20 @@ class _ChatDetailsPageState extends State<ChatDetailsPage> {
   @override
   void initState() {
     super.initState();
+    context.read<ChatsBloc>().add(ChatsLoadMessages(chatId: widget.chatId));
 
     // Подписываемся на поток сообщений
-    webSocketService.messages.listen((message) {
-      if (message['data'] is Map<String, dynamic>) {
-        final newMessage = message['data'];
-        if (newMessage['chat_id'] == widget.chatId) {
+    webSocketService.messages.listen((response) {
+      if (response['data'] is Map<String, dynamic>) {
+        print('Received message: ${response['data']}');
+        final newMessage = Message.fromJson(response['data']);
+        // Проверяем, что сообщение относится к текущему чату
+        if (newMessage.chatId == widget.chatId) {
           setState(() {
-            _messages.add(newMessage);
+            _messages.add(newMessage.toJson());
           });
         }
       }
-    });
-
-    // Отправляем запрос на получение сообщений
-    webSocketService.sendMessage({
-      "action": "get_messages",
-      "data": {"chat_id": widget.chatId},
     });
   }
 
@@ -63,23 +62,30 @@ class _ChatDetailsPageState extends State<ChatDetailsPage> {
         return;
       }
 
-      final messageData = {
-        "action": "send_message",
-        "data": {
-          "chat_id": widget.chatId,
-          "sender_id": userId,
-          "content": message,
-        },
-      };
+      // Отправляем сообщение через WebSocket
+      webSocketService.sendMessage(
+        WebSocketRequest(
+          action: "send_message",
+          data:
+              CreateMessageInput(
+                chatId: widget.chatId,
+                senderId: userId,
+                content: message,
+              ).toJson(),
+        ).toJson(),
+      );
 
-      webSocketService.sendMessage(messageData);
-
+      // Добавляем сообщение в локальный список
       setState(() {
-        _messages.add({
-          "chat_id": widget.chatId,
-          "sender_id": userId,
-          "content": message,
-        });
+        _messages.add(
+          Message(
+            id: DateTime.now().toIso8601String(),
+            chatId: widget.chatId,
+            senderId: userId,
+            content: message,
+            createdAt: DateTime.now(),
+          ).toJson(),
+        );
       });
 
       _messageController.clear();
@@ -88,6 +94,7 @@ class _ChatDetailsPageState extends State<ChatDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final userId = context.read<AuthenticationBloc>().state.user?.id;
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.chatName),
@@ -104,7 +111,7 @@ class _ChatDetailsPageState extends State<ChatDetailsPage> {
                 final message = _messages[index];
                 final isSentByMe =
                     message['sender_id'] ==
-                    "your-user-id"; // Замените на ID текущего пользователя
+                    userId; // Замените на ID текущего пользователя
                 return Align(
                   alignment:
                       isSentByMe ? Alignment.centerRight : Alignment.centerLeft,

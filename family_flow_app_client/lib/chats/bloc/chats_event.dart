@@ -62,3 +62,13 @@ class ChatsCreateChatWithParticipants extends ChatsEvent {
   @override
   List<Object> get props => [name, participantIds];
 }
+
+/// Загрузка сообщений для чата
+class ChatsLoadMessages extends ChatsEvent {
+  final String chatId;
+
+  const ChatsLoadMessages({required this.chatId});
+
+  @override
+  List<Object> get props => [chatId];
+}
