@@ -139,6 +139,36 @@ class ChatsApi {
     return responseBody.map((json) => Chat.fromJson(json)).toList();
   }
 
+  /// Получение сообщений по ID чата через HTTP API
+  Future<List<Message>> getMessagesByChatID(String chatId, String token) async {
+    final response = await _httpClient.get(
+      Uri.parse('$_baseUrl/chats/$chatId/messages'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    print('Response received with status code: ${response.statusCode}');
+
+    if (response.statusCode != 200) {
+      print('Response status code is not 200. Throwing Exception.');
+      print('Response body: ${response.body}');
+      throw Exception('Failed to get messages');
+    }
+
+    final responseBody = jsonDecode(utf8.decode(response.bodyBytes));
+    if (responseBody == null || responseBody is! List) {
+      print(
+        'API вернул null или некорректный формат. Возвращаем пустой список.',
+      );
+      return []; // Возвращаем пустой список, если данные некорректны
+    }
+
+    print('getMessagesByChatID - Messages fetched successfully: $responseBody');
+    return responseBody.map((json) => Message.fromJson(json)).toList();
+  }
+
   /// Закрытие WebSocket-соединения
   void close() {
     _channel.sink.close();

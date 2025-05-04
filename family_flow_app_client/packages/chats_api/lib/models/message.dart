@@ -12,17 +12,17 @@ class Message {
   @JsonKey(name: 'sender_id')
   final String senderId;
 
-  final String content;
+  final String? content;
 
   @JsonKey(name: 'created_at')
-  final DateTime createdAt;
+  final DateTime? createdAt;
 
   Message({
     required this.id,
     required this.chatId,
     required this.senderId,
-    required this.content,
-    required this.createdAt,
+    this.content,
+    this.createdAt,
   });
 
   factory Message.fromJson(Map<String, dynamic> json) =>

@@ -45,22 +45,22 @@ class ChatsRepository {
   }
 
   /// Отправка сообщения
-  Future<void> sendMessage({
-    required String chatId,
-    required String senderId,
-    required String content,
-  }) async {
-    print(
-      'Sending message to chatId: $chatId from senderId: $senderId with content: $content',
-    );
-    final input = CreateMessageInput(
-      chatId: chatId,
-      senderId: senderId,
-      content: content,
-    );
-    _chatsApi.sendMessage(input);
-    print('Message sent to chatId: $chatId');
-  }
+  // Future<void> sendMessage({
+  //   required String chatId,
+  //   required String senderId,
+  //   required String content,
+  // }) async {
+  //   print(
+  //     'Sending message to chatId: $chatId from senderId: $senderId with content: $content',
+  //   );
+  //   final input = CreateMessageInput(
+  //     chatId: chatId,
+  //     senderId: senderId,
+  //     content: content,
+  //   );
+  //   _chatsApi.sendMessage(input);
+  //   print('Message sent to chatId: $chatId');
+  // }
 
   Future<String> createChatWithParticipants({
     required String name,
@@ -98,6 +98,27 @@ class ChatsRepository {
       return chats;
     } catch (e) {
       print('Ошибка при получении чатов: $e');
+      return []; // Возвращаем пустой список в случае ошибки
+    }
+  }
+
+  /// Получение сообщений по ID чата
+  Future<List<Message>> getMessagesByChatID(String chatId) async {
+    try {
+      final token = await _getJwtToken();
+      if (token == null) {
+        print('JWT token is missing');
+        return []; // Возвращаем пустой список, если токен отсутствует
+      }
+
+      print('Fetching messages for chat ID: $chatId');
+      final messages = await _chatsApi.getMessagesByChatID(chatId, token);
+      if (messages.isEmpty) {
+        print('Нет доступных сообщений.');
+      }
+      return messages;
+    } catch (e) {
+      print('Ошибка при получении сообщений: $e');
       return []; // Возвращаем пустой список в случае ошибки
     }
   }
