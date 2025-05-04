@@ -1,27 +1,57 @@
+import 'dart:io';
+
 import 'package:bloc/bloc.dart';
+import 'package:family_flow_app_client/firebase_options.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:firebase_core/firebase_core.dart';
+// import 'package:firebase_messaging/firebase_messaging.dart';
 // import 'package:yandex_maps_mapkit_lite/init.dart' as init;
 
 import 'app/app.dart';
 
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // Обработка уведомлений в фоновом режиме
+  print('Handling a background message: ${message.messageId}');
+}
+
+final webSocketService = WebSocketService();
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting('ru', null);
+  await Firebase.initializeApp();
+
+  // Запрашиваем разрешение на уведомления
   await requestNotificationPermission();
 
-  await initializeDateFormatting('ru', null);
-  Bloc.observer = AppBlocObserver();
+  // Настраиваем обработку APNs-токена
+  FirebaseMessaging messaging = FirebaseMessaging.instance;
 
-  // final authenticationRepository = AuthenticationRepository();
-  // await authenticationRepository.user.first;
-  // init.initMapkit(apiKey: 'a6f9dfc0-7ab3-44c1-a592-fc6086fd98cd');
+  // Получаем APNs-токен
+  final apnsToken = await messaging.getAPNSToken();
+  print('APNs Token: $apnsToken');
+
+  // Обработка фоновых уведомлений
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+  webSocketService.connect('ws://10.0.2.2:8080/ws');
 
   runApp(App());
 }
 
 Future<void> requestNotificationPermission() async {
-  if (await Permission.notification.isDenied) {
-    await Permission.notification.request();
+  if (Platform.isAndroid) {
+    final status = await Permission.notification.status;
+    if (!status.isGranted) {
+      final result = await Permission.notification.request();
+      if (result.isGranted) {
+        print('Разрешение на уведомления предоставлено');
+      } else {
+        print('Разрешение на уведомления отклонено');
+      }
+    }
   }
 }
