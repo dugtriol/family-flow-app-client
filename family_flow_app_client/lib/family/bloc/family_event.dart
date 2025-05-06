@@ -59,3 +59,5 @@ class FamilyInviteMemberRequested extends FamilyEvent {
   @override
   List<Object> get props => [email, role];
 }
+
+class LoadFamily extends FamilyEvent {}
