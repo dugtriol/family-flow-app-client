@@ -67,6 +67,43 @@ class UserApiClient {
     print('user-api-updateUser: updateUser completed successfully.');
   }
 
+  /// Метод для обновления геолокации пользователя
+  Future<void> updateUserLocation({
+    required double latitude,
+    required double longitude,
+    required String token,
+  }) async {
+    print(
+      'user-api-updateUserLocation: Called with latitude: $latitude, longitude: $longitude, token: $token',
+    );
+    final uri = Uri.parse('$_baseUrl/user/location');
+    print('user-api-updateUserLocation: Constructed URI: $uri');
+
+    final jsonBody = jsonEncode({'latitude': latitude, 'longitude': longitude});
+    print('user-api-updateUserLocation: JSON body: $jsonBody');
+
+    final response = await _httpClient.put(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonBody,
+    );
+    print(
+      'user-api-updateUserLocation: Response received with status code: ${response.statusCode}',
+    );
+
+    if (response.statusCode != 200) {
+      print(
+        'user-api-updateUserLocation: Failed to update user location. Response body: ${response.body}',
+      );
+      throw Exception('Failed to update user location: ${response.body}');
+    }
+
+    print('user-api-updateUserLocation: Location updated successfully.');
+  }
+
   void close() {
     _httpClient.close();
   }

@@ -68,4 +68,32 @@ class UserRepository {
       rethrow;
     }
   }
+
+  /// Метод для обновления геолокации пользователя
+  Future<void> updateUserLocation({
+    required double latitude,
+    required double longitude,
+  }) async {
+    print(
+      "updateUserLocation - start: latitude=$latitude, longitude=$longitude",
+    );
+
+    final token = await _getJwtToken();
+    if (token == null) {
+      print("updateUserLocation - error: JWT token is missing");
+      throw Exception('JWT token is missing');
+    }
+
+    try {
+      await _userApiClient.updateUserLocation(
+        latitude: latitude,
+        longitude: longitude,
+        token: token,
+      );
+      print("updateUserLocation - success");
+    } catch (e) {
+      print("updateUserLocation - error: $e");
+      rethrow;
+    }
+  }
 }

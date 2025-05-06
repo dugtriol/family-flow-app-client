@@ -10,6 +10,8 @@ class UserGet {
     required this.email,
     required this.role,
     required this.familyId,
+    this.latitude,
+    this.longitude,
   });
 
   final String id;
@@ -18,6 +20,8 @@ class UserGet {
   final String role;
   @JsonKey(name: 'family_id')
   final String familyId;
+  final double? latitude; // Новое поле для широты
+  final double? longitude; // Новое поле для долготы
 
   factory UserGet.fromJson(Map<String, dynamic> json) =>
       _$UserGetFromJson(json);
