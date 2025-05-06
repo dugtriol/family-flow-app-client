@@ -18,11 +18,12 @@ class MapInitialized extends GeolocationEvent {
 
 class AddMarker extends GeolocationEvent {
   final Point location;
+  final String name;
 
-  const AddMarker(this.location);
+  const AddMarker(this.location, this.name);
 
   @override
-  List<Object> get props => [location];
+  List<Object> get props => [location, name];
 }
 
 class MoveCamera extends GeolocationEvent {
@@ -49,3 +50,13 @@ class MarkerTapped extends GeolocationEvent {
 }
 
 class RefreshMap extends GeolocationEvent {}
+
+class MoveToLocation extends GeolocationEvent {
+  final double latitude;
+  final double longitude;
+
+  const MoveToLocation({required this.latitude, required this.longitude});
+
+  @override
+  List<Object> get props => [latitude, longitude];
+}
