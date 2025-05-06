@@ -99,8 +99,8 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
       emit(ChatsMessagesLoadSuccess(messages));
 
       // После загрузки сообщений возвращаемся к списку чатов
-      final chats = await _chatsRepository.getChatsByUserID();
-      emit(ChatsLoadSuccess(chats));
+      // final chats = await _chatsRepository.getChatsByUserID();
+      // emit(ChatsLoadSuccess(chats));
     } catch (e) {
       emit(ChatsLoadFailure(e.toString()));
     }
