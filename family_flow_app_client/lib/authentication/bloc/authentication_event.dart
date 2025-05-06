@@ -25,3 +25,16 @@ final class AuthenticationProfileUpdateRequested extends AuthenticationEvent {
   @override
   List<Object?> get props => [name, email, role];
 }
+
+final class AuthenticationLocationUpdateRequested extends AuthenticationEvent {
+  final double latitude;
+  final double longitude;
+
+  const AuthenticationLocationUpdateRequested({
+    required this.latitude,
+    required this.longitude,
+  });
+
+  @override
+  List<Object> get props => [latitude, longitude];
+}

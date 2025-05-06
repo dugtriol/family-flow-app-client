@@ -28,6 +28,9 @@ class AuthenticationBloc
     on<AuthenticationLogoutPressed>(_onLogoutPressed);
     on<AuthenticationUserRefreshed>(_onUserRefreshed);
     on<AuthenticationProfileUpdateRequested>(_onProfileUpdateRequested);
+    on<AuthenticationLocationUpdateRequested>(
+      _onAuthenticationLocationUpdateRequested,
+    );
   }
 
   final AuthenticationRepository _authenticationRepository;
@@ -130,6 +133,28 @@ class AuthenticationBloc
     } catch (e) {
       print('Failed to update profile for user: ${state.user?.id}, error: $e');
       emit(const AuthenticationState.unauthenticated());
+    }
+  }
+
+  void _onAuthenticationLocationUpdateRequested(
+    AuthenticationLocationUpdateRequested event,
+    Emitter<AuthenticationState> emit,
+  ) async {
+    try {
+      final user = state.user;
+      if (user != null) {
+        await _userRepository.updateUserLocation(
+          latitude: event.latitude,
+          longitude: event.longitude,
+        );
+        print(
+          'Локация пользователя обновлена: ${event.latitude}, ${event.longitude}',
+        );
+      } else {
+        print('Ошибка: пользователь не аутентифицирован');
+      }
+    } catch (e) {
+      print('Ошибка при обновлении локации: $e');
     }
   }
 }
