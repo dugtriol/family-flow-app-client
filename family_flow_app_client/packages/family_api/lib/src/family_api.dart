@@ -85,6 +85,8 @@ class FamilyApiClient {
       throw Exception('Failed to get family members: ${response.body}');
     }
 
+    print('getFamilyMembers - body: ${response.body}');
+
     // print('Response body: ${response.body}');
     if (response.body.isEmpty || response.body == 'null') {
       // print('Response body is empty or null');
@@ -93,14 +95,24 @@ class FamilyApiClient {
 
     try {
       // Парсим массив JSON
-      final responseData =
-          jsonDecode(utf8.decode(response.bodyBytes)) as List<dynamic>;
+      // final responseData =
+      //     jsonDecode(utf8.decode(response.bodyBytes)) as List<dynamic>;
+
+      // final users =
+      //     responseData
+      //         .map(
+      //           (userJson) => User.fromJson(userJson as Map<String, dynamic>),
+      //         )
+      //         .toList();
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
       final users =
-          responseData
+          (body['list'] as List)
               .map(
-                (userJson) => User.fromJson(userJson as Map<String, dynamic>),
+                (memberJson) =>
+                    User.fromJson(memberJson as Map<String, dynamic>),
               )
               .toList();
+      print('getFamilyMembers - Parsed users: $users');
       return OutputGetMembers(users: users);
     } catch (e) {
       print('Failed to parse response body: $e');

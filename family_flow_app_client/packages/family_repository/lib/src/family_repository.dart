@@ -97,6 +97,8 @@ class FamilyRepository {
         token,
       );
 
+      print('FamilyRepository - Fetched family members: ${output.users}');
+
       return output.users;
     } catch (e) {
       print('Failed to fetch family members: $e');
