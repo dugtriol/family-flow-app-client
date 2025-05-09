@@ -5,7 +5,7 @@ import 'dart:math' show Random;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:user_repository/user_repository.dart' show User;
+import 'package:user_api/user_api.dart' show User;
 import 'package:yandex_mapkit/yandex_mapkit.dart';
 import '../../authentication/authentication.dart';
 import '../../family/family.dart';
@@ -20,8 +20,6 @@ class GeolocationPage extends StatefulWidget {
 
 class _GeolocationPageState extends State<GeolocationPage> {
   String? _selectedFamilyMember; // Выбранный член семьи
-  List<Map<String, dynamic>> _familyMembers =
-      []; // Список членов семьи с координатами
 
   @override
   void initState() {
@@ -245,6 +243,7 @@ class _GeolocationPageState extends State<GeolocationPage> {
                     ),
                   );
                 } else if (familyState is FamilyLoadFailure) {
+                  print('Ошибка загрузки семьи: ${familyState.error}');
                   return Center(
                     child: Text(
                       'Ошибка: ${familyState.error}',
