@@ -9,6 +9,7 @@ import 'package:shopping_repository/shopping_repository.dart';
 import 'package:todo_repository/todo_repository.dart';
 import 'package:user_repository/user_repository.dart';
 import 'package:wishlist_repository/wishlist_repository.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import '../../authentication/authentication.dart';
 import '../../chats/chats.dart';
@@ -175,6 +176,8 @@ class _AppViewState extends State<AppView> {
   Widget build(BuildContext context) {
     return MaterialApp(
       navigatorKey: _navigatorKey,
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
+      supportedLocales: const [Locale('en', 'US'), Locale('ru', 'RU')],
       builder: (context, child) {
         return BlocListener<AuthenticationBloc, AuthenticationState>(
           listener: (context, state) {
