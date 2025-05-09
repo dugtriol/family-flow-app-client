@@ -15,15 +15,21 @@ final class AuthenticationProfileUpdateRequested extends AuthenticationEvent {
   final String name;
   final String email;
   final String role;
+  final String gender;
+  final String birthDate;
+  final File? avatar;
 
   const AuthenticationProfileUpdateRequested({
     required this.name,
     required this.email,
     required this.role,
+    required this.gender,
+    required this.birthDate,
+    this.avatar,
   });
 
   @override
-  List<Object?> get props => [name, email, role];
+  List<Object?> get props => [name, email, role, gender, birthDate, avatar];
 }
 
 final class AuthenticationLocationUpdateRequested extends AuthenticationEvent {

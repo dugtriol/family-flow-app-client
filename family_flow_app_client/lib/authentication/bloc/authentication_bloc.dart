@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:todo_repository/todo_repository.dart';
@@ -124,6 +125,12 @@ class AuthenticationBloc
             name: event.name,
             email: event.email,
             role: event.role,
+            gender: event.gender,
+            birthDate:
+                event.birthDate != null && event.birthDate.isNotEmpty
+                    ? DateTime.parse(event.birthDate)
+                    : null,
+            avatar: event.avatar,
           ),
         );
         print('Profile updated successfully for user: ${user.id}');
