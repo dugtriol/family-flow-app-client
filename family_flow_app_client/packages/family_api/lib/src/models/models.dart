@@ -4,3 +4,7 @@ export 'input_get_members.dart';
 export 'output_get_members.dart';
 export 'family.dart';
 export 'input_reset_family_id.dart';
+export 'input_create_reward.dart';
+export 'reward.dart';
+export 'reward_redemption.dart';
+export 'input_update_photo.dart';

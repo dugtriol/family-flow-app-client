@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:user_repository/user_repository.dart';
+import 'package:user_api/user_api.dart' show User;
 
 import 'models/models.dart';
 
@@ -189,6 +189,173 @@ class FamilyApiClient {
 
     if (response.statusCode != 200) {
       throw Exception('Failed to invite member to family: ${response.body}');
+    }
+  }
+
+  // --- REWARDS ---
+
+  Future<String> createReward(RewardCreateInput input, String token) async {
+    final uri = Uri.parse('$_baseUrl/rewards');
+    final jsonBody = jsonEncode(input.toJson());
+
+    final response = await _httpClient.post(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonBody,
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to create reward: ${response.body}');
+    }
+
+    final responseData = jsonDecode(response.body) as Map<String, dynamic>;
+    final output = responseData['reward_id'] as String;
+    print('createReward - output: $output');
+    return output;
+  }
+
+  /// Получить список вознаграждений семьи
+  Future<List<Reward>> getRewardsByFamilyID(
+    String familyId,
+    String token,
+  ) async {
+    final uri = Uri.parse('$_baseUrl/rewards?family_id=$familyId');
+
+    final response = await _httpClient.get(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to get rewards: ${response.body}');
+    }
+
+    final responseBody = jsonDecode(utf8.decode(response.bodyBytes));
+    print('getRewardsByFamilyID - Response body: ${response.body}');
+    print('responseBody == null: ${responseBody == null}');
+    print('responseBody is List: ${responseBody is! List}');
+    print('response.body.isEmpty: ${response.body.isEmpty}');
+    print('response.body is List: ${response.body is! List}');
+    if (responseBody == null ||
+        responseBody is! List ||
+        response.body.isEmpty) {
+      print(
+        'API вернул null или некорректный формат. Возвращаем пустой список.',
+      );
+      return [];
+    }
+
+    final responseData =
+        jsonDecode(utf8.decode(response.bodyBytes)) as List<dynamic>;
+    return responseData
+        .map(
+          (rewardJson) => Reward.fromJson(rewardJson as Map<String, dynamic>),
+        )
+        .toList();
+  }
+
+  /// Получить очки пользователя
+  Future<int> getPoints(String userId, String token) async {
+    final uri = Uri.parse('$_baseUrl/rewards/points?user_id=$userId');
+
+    final response = await _httpClient.get(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to get points: ${response.body}');
+    }
+
+    final responseData =
+        jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+    return responseData['points'] as int;
+  }
+
+  /// Обменять очки на вознаграждение
+  Future<void> redeemReward(String rewardId, String token) async {
+    final uri = Uri.parse('$_baseUrl/rewards/$rewardId/redeem');
+
+    final response = await _httpClient.post(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to redeem reward: ${response.body}');
+    }
+  }
+
+  /// Получить список обменов пользователя
+  Future<List<RewardRedemption>> getRedemptionsByUserID(
+    String userId,
+    String token,
+  ) async {
+    final uri = Uri.parse('$_baseUrl/rewards/redemptions?user_id=$userId');
+
+    final response = await _httpClient.get(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to get redemptions: ${response.body}');
+    }
+
+    if (response.body.isEmpty || response.body == 'null') {
+      return []; // Возвращаем пустой список, если данных нет
+    }
+
+    final responseData = jsonDecode(response.body) as List<dynamic>;
+    return responseData
+        .map(
+          (redemptionJson) =>
+              RewardRedemption.fromJson(redemptionJson as Map<String, dynamic>),
+        )
+        .toList();
+  }
+
+  Future<void> updateFamilyPhoto(InputUpdatePhoto input, String token) async {
+    final uri = Uri.parse('$_baseUrl/family/photo');
+
+    final request =
+        http.MultipartRequest('PUT', uri)
+          ..fields['familyId'] = input.familyId
+          ..headers['Authorization'] = 'Bearer $token';
+
+    // Добавляем файл фото
+    if (input.photo != null) {
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'photo', // Ключ должен совпадать с серверным
+          input.photo!.path,
+        ),
+      );
+    } else {
+      throw Exception('Photo file is missing');
+    }
+
+    final response = await request.send();
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        'Failed to update family photo: ${response.reasonPhrase}',
+      );
     }
   }
 
