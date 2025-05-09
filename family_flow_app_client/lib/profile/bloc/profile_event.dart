@@ -22,12 +22,18 @@ class ProfileUpdateRequested extends ProfileEvent {
     required this.name,
     required this.email,
     required this.role,
+    required this.gender,
+    required this.birthDate,
+    required this.avatar,
   });
 
   final String name;
   final String email;
   final String role;
+  final String gender;
+  final String birthDate;
+  final String avatar;
 
   @override
-  List<Object?> get props => [name, email, role];
+  List<Object?> get props => [name, email, role, gender, birthDate, avatar];
 }

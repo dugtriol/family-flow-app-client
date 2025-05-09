@@ -1,9 +1,10 @@
+import 'dart:io' show File;
+
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:family_flow_app_client/authentication/bloc/authentication_bloc.dart';
 import 'package:family_flow_app_client/family/family.dart';
-import 'package:family_repository/family_repository.dart';
-import 'package:user_repository/user_repository.dart' show User;
+import 'package:user_api/user_api.dart' show User;
 
 part 'profile_event.dart';
 part 'profile_state.dart';
@@ -31,25 +32,31 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     print('ProfileRequested event received');
     _authenticationBloc.add(AuthenticationUserRefreshed());
     final user = _authenticationBloc.state.user;
+
     if (user != null) {
       print('User found: ${user.id}');
       try {
         String? familyName;
-        if (user.familyId.isNotEmpty) {
+
+        // Проверяем, есть ли familyId
+        if (user.familyId != null && user.familyId!.isNotEmpty) {
           print('Fetching family data for familyId: ${user.familyId}');
           // Получаем состояние FamilyBloc
           final familyState = _familyBloc.state;
           if (familyState is FamilyLoadSuccess) {
             final family = familyState.members.firstWhere(
               (member) => member.id == user.familyId,
-              orElse: () => User.empty,
+              orElse: () => User.empty, // Возвращаем пустого пользователя
             );
-            familyName = family?.name;
+            familyName = family.name;
             print('Family data fetched successfully: $familyName');
           } else {
             print('Family data not loaded yet');
           }
+        } else {
+          print('User has no familyId');
         }
+
         emit(ProfileLoadSuccess(user: user, familyName: familyName));
         print('ProfileLoadSuccess emitted');
       } catch (e) {
@@ -86,6 +93,9 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         name: event.name,
         email: event.email,
         role: event.role,
+        gender: event.gender,
+        birthDate: event.birthDate,
+        avatar: event.avatar.isNotEmpty ? File(event.avatar) : null,
       ),
     );
 

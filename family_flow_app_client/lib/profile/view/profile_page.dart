@@ -32,32 +32,18 @@ class _ProfilePageState extends State<ProfilePage> {
         elevation: 0,
         title: Row(
           children: [
-            // const Icon(Icons.person, color: Colors.deepPurple, size: 28),
-            // const SizedBox(width: 8),
-            // const Text(
-            //   'Профиль',
-            //   style: TextStyle(
-            //     color: Colors.black87,
-            //     fontSize: 20,
-            //     fontWeight: FontWeight.w600,
-            //   ),
-            // ),
+            const Icon(Icons.person, color: Colors.deepPurple, size: 28),
+            const SizedBox(width: 8),
+            const Text(
+              'Профиль',
+              style: TextStyle(
+                color: Colors.black87,
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ],
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings, color: Colors.deepPurple),
-            onPressed: () {
-              // Логика для открытия настроек
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const PlaceholderScreen(title: 'Настройки'),
-                ),
-              );
-            },
-            tooltip: 'Настройки',
-          ),
-        ],
       ),
       backgroundColor: Colors.white, // Устанавливаем цвет фона как у AppBar
       body: RefreshIndicator(
@@ -98,16 +84,25 @@ class _ProfilePageState extends State<ProfilePage> {
                             CircleAvatar(
                               radius: 40,
                               backgroundColor: Colors.deepPurple,
-                              child: Text(
-                                user.name.isNotEmpty
-                                    ? user.name[0].toUpperCase()
-                                    : '?',
-                                style: const TextStyle(
-                                  fontSize: 40,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
+                              backgroundImage:
+                                  user.avatar != null && user.avatar!.isNotEmpty
+                                      ? NetworkImage(
+                                        user.avatar!,
+                                      ) // Загружаем фото, если оно есть
+                                      : null,
+                              child:
+                                  user.avatar == null || user.avatar!.isEmpty
+                                      ? Text(
+                                        user.name.isNotEmpty
+                                            ? user.name[0].toUpperCase()
+                                            : '?',
+                                        style: const TextStyle(
+                                          fontSize: 40,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      )
+                                      : null,
                             ),
                             const SizedBox(height: 16),
                             const SizedBox(width: 16),
@@ -184,14 +179,14 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                       const Divider(),
                       ProfileOption(
-                        icon: Icons.bar_chart,
-                        label: 'Статистика',
+                        icon: Icons.password,
+                        label: 'Сбросить пароль',
                         onTap: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder:
                                   (_) => const PlaceholderScreen(
-                                    title: 'Статистика',
+                                    title: 'Сбросить пароль',
                                   ),
                             ),
                           );
