@@ -2,7 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:shopping_api/shopping_api.dart';
 import 'package:shopping_repository/shopping_repository.dart';
-import 'package:user_repository/user_repository.dart' show User;
+import 'package:user_api/user_api.dart' show User;
 
 import '../../family/family.dart';
 
