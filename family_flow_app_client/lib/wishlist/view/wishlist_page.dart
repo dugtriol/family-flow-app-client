@@ -98,6 +98,7 @@ class _WishlistPageState extends State<WishlistPage> {
                 } else if (state is FamilyLoading) {
                   return const Center(child: CircularProgressIndicator());
                 } else {
+                  print('Error loading family members: ${state.toString()}');
                   return const Center(
                     child: Text(
                       'Не удалось загрузить список семьи.',

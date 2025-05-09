@@ -1,6 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:user_repository/user_repository.dart' show User;
+import 'package:user_api/user_api.dart' show User;
 import 'package:wishlist_api/wishlist_api.dart';
 import 'package:wishlist_repository/wishlist_repository.dart';
 
