@@ -60,6 +60,7 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
         description: event.description,
         assignedTo: event.assignedTo,
         deadline: event.deadline,
+        point: event.point,
       );
       // Обновляем список задач
       await _onAssignedToRequested(TodoAssignedToRequested(), emit);
@@ -82,6 +83,7 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
         status: "Completed",
         assignedTo: event.assignedTo,
         deadline: event.deadline,
+        point: event.point,
       );
       // Обновляем список задач
       await _onAssignedToRequested(TodoAssignedToRequested(), emit);
@@ -103,6 +105,7 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
         status: event.status,
         assignedTo: event.assignedTo,
         deadline: event.deadline,
+        point: event.point,
       );
       // Обновляем список задач
       await _onAssignedToRequested(TodoAssignedToRequested(), emit);

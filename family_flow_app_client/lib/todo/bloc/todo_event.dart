@@ -17,14 +17,16 @@ class TodoCreateRequested extends TodoEvent {
     required this.description,
     required this.assignedTo,
     required this.deadline,
+    this.point = 0,
   });
   final String title;
   final String description;
   final String assignedTo;
   final DateTime deadline;
+  final int point;
 
   @override
-  List<Object> get props => [title, description, assignedTo, deadline];
+  List<Object> get props => [title, description, assignedTo, deadline, point];
 }
 
 class TodoUpdateCompleteRequested extends TodoEvent {
@@ -35,6 +37,7 @@ class TodoUpdateCompleteRequested extends TodoEvent {
     required this.status,
     required this.deadline,
     required this.assignedTo,
+    required this.point,
   });
 
   final String id;
@@ -43,10 +46,18 @@ class TodoUpdateCompleteRequested extends TodoEvent {
   final String status;
   final DateTime deadline;
   final String assignedTo;
+  final int point;
 
   @override
-  List<Object> get props =>
-      [id, title, description, status, deadline, assignedTo];
+  List<Object> get props => [
+    id,
+    title,
+    description,
+    status,
+    deadline,
+    assignedTo,
+    point,
+  ];
 }
 
 class TodoUpdateRequested extends TodoEvent {
@@ -57,6 +68,7 @@ class TodoUpdateRequested extends TodoEvent {
     required this.status,
     required this.deadline,
     required this.assignedTo,
+    required this.point,
   });
 
   final String id;
@@ -65,10 +77,18 @@ class TodoUpdateRequested extends TodoEvent {
   final String status;
   final DateTime deadline;
   final String assignedTo;
+  final int point;
 
   @override
-  List<Object> get props =>
-      [id, title, description, status, deadline, assignedTo];
+  List<Object> get props => [
+    id,
+    title,
+    description,
+    status,
+    deadline,
+    assignedTo,
+    point,
+  ];
 }
 
 class TodoDeleteRequested extends TodoEvent {

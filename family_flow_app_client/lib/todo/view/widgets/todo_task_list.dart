@@ -27,15 +27,14 @@ class TodoTaskList extends StatelessWidget {
 
         return GestureDetector(
           onTap: () {
-            // Открываем диалог с подробной информацией
-            showDialog(
-              context: context,
-              builder: (dialogContext) {
-                return BlocProvider.value(
-                  value: context.read<TodoBloc>(),
-                  child: TodoDetailsDialog(todo: todo),
-                );
-              },
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder:
+                    (_) => BlocProvider.value(
+                      value: context.read<TodoBloc>(),
+                      child: TodoDetailsDialog(todo: todo),
+                    ),
+              ),
             );
           },
           child: Padding(
@@ -46,9 +45,10 @@ class TodoTaskList extends StatelessWidget {
                 todo.status.toLowerCase() == 'completed'
                     ? Icons.check_circle
                     : Icons.radio_button_unchecked,
-                color: todo.status.toLowerCase() == 'completed'
-                    ? Colors.green
-                    : Colors.blue,
+                color:
+                    todo.status.toLowerCase() == 'completed'
+                        ? Colors.green
+                        : Colors.blue,
                 size: 24, // Размер иконки
               ),
               title: Text(
