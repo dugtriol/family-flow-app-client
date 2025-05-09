@@ -11,7 +11,7 @@ class UserApiClient {
   static const _baseUrl = 'http://10.0.2.2:8080/api';
   final http.Client _httpClient;
 
-  Future<UserGet> getUser(String token) async {
+  Future<User> getUser(String token) async {
     print('getUser called with token: $token');
     final uri = Uri.parse('$_baseUrl/user');
     print('Constructed URI: $uri');
@@ -33,38 +33,72 @@ class UserApiClient {
     final responseBody =
         jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
     print('Response body decoded: $responseBody');
-    final user = UserGet.fromJson(responseBody);
+    final user = User.fromJson(responseBody);
     print('UserGet object created: $user');
     return user;
   }
+
+  // Future<void> updateUser(String token, UserUpdateInput input) async {
+  //   print(
+  //     'user-api-updateUser: updateUser called with token: $token and input: ${input.toJson()}',
+  //   );
+  //   final uri = Uri.parse('$_baseUrl/user');
+  //   print('user-api-updateUser: Constructed URI: $uri');
+
+  //   final response = await _httpClient.put(
+  //     uri,
+  //     headers: {
+  //       'Content-Type': 'application/json',
+  //       'Authorization': 'Bearer $token',
+  //     },
+  //     body: jsonEncode(input.toJson()),
+  //   );
+  //   print(
+  //     'user-api-updateUser: Response received with status code: ${response.statusCode}',
+  //   );
+
+  //   if (response.statusCode != 200) {
+  //     print(
+  //       'user-api-updateUser: Response status code is not 200. Throwing UserFetchFailure.',
+  //     );
+  //     throw UserFetchFailure();
+  //   }
+
+  //   print('user-api-updateUser: updateUser completed successfully.');
+  // }
 
   Future<void> updateUser(String token, UserUpdateInput input) async {
     print(
       'user-api-updateUser: updateUser called with token: $token and input: ${input.toJson()}',
     );
     final uri = Uri.parse('$_baseUrl/user');
-    print('user-api-updateUser: Constructed URI: $uri');
+    final request = http.MultipartRequest('PUT', uri);
 
-    final response = await _httpClient.put(
-      uri,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-      body: jsonEncode(input.toJson()),
-    );
-    print(
-      'user-api-updateUser: Response received with status code: ${response.statusCode}',
-    );
-
-    if (response.statusCode != 200) {
-      print(
-        'user-api-updateUser: Response status code is not 200. Throwing UserFetchFailure.',
-      );
-      throw UserFetchFailure();
+    // Добавляем текстовые поля
+    request.fields['name'] = input.name;
+    request.fields['email'] = input.email;
+    request.fields['role'] = input.role;
+    request.fields['gender'] = input.gender;
+    if (input.birthDate != null) {
+      request.fields['birth_date'] = input.birthDate!.toIso8601String();
     }
 
-    print('user-api-updateUser: updateUser completed successfully.');
+    // Добавляем файл аватара, если он есть
+    if (input.avatar != null) {
+      request.files.add(
+        await http.MultipartFile.fromPath('avatar', input.avatar!.path),
+      );
+    }
+
+    // Добавляем заголовок авторизации
+    request.headers['Authorization'] = 'Bearer $token';
+
+    // Отправляем запрос
+    final response = await request.send();
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update user: ${response.reasonPhrase}');
+    }
   }
 
   /// Метод для обновления геолокации пользователя

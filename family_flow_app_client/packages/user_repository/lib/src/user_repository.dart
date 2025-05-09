@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:user_api/user_api.dart';
-import 'package:user_repository/src/models/models.dart';
 
 class UserRepository {
   UserRepository({UserApiClient? userApiClient})
@@ -32,17 +31,17 @@ class UserRepository {
     }
 
     try {
-      final userGet = await _userApiClient.getUser(token);
-      print("getUser - userGet: $userGet");
+      final _user = await _userApiClient.getUser(token);
+      print("getUser - userGet: $_user");
 
       // Преобразуем UserGet в User
-      _user = User(
-        id: userGet.id,
-        name: userGet.name,
-        email: userGet.email,
-        role: userGet.role,
-        familyId: userGet.familyId,
-      );
+      // _user = User(
+      //   id: userGet.id,
+      //   name: userGet.name,
+      //   email: userGet.email,
+      //   role: userGet.role,
+      //   familyId: userGet.familyId,
+      // );
       print("getUser - user: $_user");
       return _user;
     } catch (e) {
@@ -56,6 +55,7 @@ class UserRepository {
 
   /// Update user information
   Future<void> updateUser(UserUpdateInput input) async {
+    print("updateUser - start: $input");
     final token = await _getJwtToken();
     if (token == null) {
       throw Exception('Token not found');
