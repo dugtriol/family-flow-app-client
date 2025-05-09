@@ -12,6 +12,7 @@ class TodoCreateInput {
   final DateTime deadline;
   @JsonKey(name: 'assigned_to')
   final String assignedTo;
+  final int point;
 
   TodoCreateInput({
     required this.familyId,
@@ -19,6 +20,7 @@ class TodoCreateInput {
     required this.description,
     required this.deadline,
     required this.assignedTo,
+    this.point = 0,
   });
 
   factory TodoCreateInput.fromJson(Map<String, dynamic> json) =>

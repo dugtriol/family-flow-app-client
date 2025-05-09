@@ -38,6 +38,7 @@ class TodoRepository {
     required String description,
     required String assignedTo,
     required DateTime deadline,
+    int point = 0,
   }) async {
     try {
       print('Starting to create a new todo...');
@@ -58,6 +59,7 @@ class TodoRepository {
         description: description,
         deadline: deadline,
         assignedTo: assignedTo,
+        point: point,
       );
       print('TodoCreateInput prepared: $todoCreateInput');
 
@@ -153,6 +155,7 @@ class TodoRepository {
     required String status,
     required String assignedTo,
     required DateTime deadline,
+    required int point,
   }) async {
     try {
       print('Starting to update todo with ID: $id...');
@@ -173,6 +176,7 @@ class TodoRepository {
         status: status,
         deadline: deadline,
         assignedTo: assignedTo,
+        point: point,
       );
       print('InputTodoUpdate prepared: $todoUpdateInput');
 

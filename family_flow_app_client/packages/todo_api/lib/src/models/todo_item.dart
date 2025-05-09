@@ -18,6 +18,7 @@ class TodoItem extends Equatable {
   final String createdBy;
   @JsonKey(name: 'created_at')
   final DateTime createdAt;
+  final int point;
 
   const TodoItem({
     required this.id,
@@ -29,6 +30,7 @@ class TodoItem extends Equatable {
     required this.assignedTo,
     required this.createdBy,
     required this.createdAt,
+    this.point = 0,
   });
 
   /// Фабрика для создания объекта из JSON
@@ -40,14 +42,15 @@ class TodoItem extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        familyId,
-        title,
-        description,
-        status,
-        deadline,
-        assignedTo,
-        createdBy,
-        createdAt,
-      ];
+    id,
+    familyId,
+    title,
+    description,
+    status,
+    deadline,
+    assignedTo,
+    createdBy,
+    createdAt,
+    point,
+  ];
 }

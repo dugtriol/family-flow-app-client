@@ -13,6 +13,7 @@ InputTodoUpdate _$InputTodoUpdateFromJson(Map<String, dynamic> json) =>
       status: json['status'] as String,
       deadline: DateTime.parse(json['deadline'] as String),
       assignedTo: json['assigned_to'] as String,
+      point: (json['point'] as num).toInt(),
     );
 
 Map<String, dynamic> _$InputTodoUpdateToJson(InputTodoUpdate instance) =>
@@ -22,4 +23,5 @@ Map<String, dynamic> _$InputTodoUpdateToJson(InputTodoUpdate instance) =>
       'status': instance.status,
       'deadline': instance.deadline.toIso8601String(),
       'assigned_to': instance.assignedTo,
+      'point': instance.point,
     };

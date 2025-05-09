@@ -43,56 +43,6 @@ class TodoApiClient {
     return responseBody;
   }
 
-  // /// Method to get todos assigned to a specific user
-  // Future<List<TodoItem>> getTodosAssignedTo(String token) async {
-  //   final uri = Uri.parse('$_baseUrl/todo/assigned_to');
-  //   print('Constructed URI for getTodosAssignedTo: $uri');
-  //   print('Token: $token');
-
-  //   final response = await _httpClient.get(
-  //     uri,
-  //     headers: {'Authorization': 'Bearer $token'},
-  //   );
-  //   print('Response received with status code: ${response.statusCode}');
-
-  //   if (response.statusCode != 200) {
-  //     print('Response status code is not 200. Throwing Exception.');
-  //     print('Response body: ${response.body}');
-  //     throw Exception('Failed to fetch todos assigned to user');
-  //   }
-
-  //   final responseBody = jsonDecode(utf8.decode(response.bodyBytes)) as List;
-  //   print('getTodosAssignedTo - Todos fetched successfully: $responseBody');
-  //   return responseBody.map((json) => TodoItem.fromJson(json)).toList();
-  // }
-
-  // /// Method to get todos created by a specific user
-  // Future<List<TodoItem>> getTodosCreatedBy(String token) async {
-  //   final uri = Uri.parse('$_baseUrl/todo/created_by');
-  //   print('Constructed URI for getTodosCreatedBy: $uri');
-  //   print('Token: $token');
-
-  //   final response = await _httpClient.get(
-  //     uri,
-  //     headers: {'Authorization': 'Bearer $token'},
-  //   );
-  //   print(
-  //     'getTodosCreatedBy - Response received with status code: ${response.statusCode}',
-  //   );
-
-  //   if (response.statusCode != 200) {
-  //     print(
-  //       'getTodosCreatedBy - Response status code is not 200. Throwing Exception.',
-  //     );
-  //     print('getTodosCreatedBy - Response body: ${response.body}');
-  //     throw Exception('Failed to fetch todos created by user');
-  //   }
-  //   print('getTodosCreatedBy - Response body: ${response.body}');
-  //   final responseBody = jsonDecode(utf8.decode(response.bodyBytes)) as List;
-  //   print('getTodosCreatedBy - Todos fetched successfully: $responseBody');
-  //   return responseBody.map((json) => TodoItem.fromJson(json)).toList();
-  // }
-
   Future<List<TodoItem>> getTodosAssignedTo(String token) async {
     final uri = Uri.parse('$_baseUrl/todo/assigned_to');
     print('Constructed URI for getTodosAssignedTo: $uri');

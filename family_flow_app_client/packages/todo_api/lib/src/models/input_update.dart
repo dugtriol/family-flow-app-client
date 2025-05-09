@@ -10,6 +10,7 @@ class InputTodoUpdate {
   final DateTime deadline;
   @JsonKey(name: 'assigned_to')
   final String assignedTo;
+  final int point;
 
   InputTodoUpdate({
     required this.title,
@@ -17,6 +18,7 @@ class InputTodoUpdate {
     required this.status,
     required this.deadline,
     required this.assignedTo,
+    required this.point,
   });
 
   factory InputTodoUpdate.fromJson(Map<String, dynamic> json) =>

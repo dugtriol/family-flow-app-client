@@ -13,6 +13,7 @@ TodoCreateInput _$TodoCreateInputFromJson(Map<String, dynamic> json) =>
       description: json['description'] as String,
       deadline: DateTime.parse(json['deadline'] as String),
       assignedTo: json['assigned_to'] as String,
+      point: (json['point'] as num?)?.toInt() ?? 0,
     );
 
 Map<String, dynamic> _$TodoCreateInputToJson(TodoCreateInput instance) =>
@@ -22,4 +23,5 @@ Map<String, dynamic> _$TodoCreateInputToJson(TodoCreateInput instance) =>
       'description': instance.description,
       'deadline': instance.deadline.toIso8601String(),
       'assigned_to': instance.assignedTo,
+      'point': instance.point,
     };
