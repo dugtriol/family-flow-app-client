@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:io' show File;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:family_api/family_api.dart';
-import 'package:user_repository/user_repository.dart' show User, UserRepository;
+import 'package:user_api/user_api.dart' show User;
+import 'package:user_repository/user_repository.dart' show UserRepository;
 
 class FamilyRepository {
   FamilyRepository({
@@ -17,11 +19,11 @@ class FamilyRepository {
   Stream<List<User>> get familyMembers async* {
     try {
       final user = await getCurrentUser();
-      if (user.familyId.isEmpty) {
+      if (user.familyId!.isEmpty) {
         yield [];
         return;
       }
-      final members = await fetchFamilyMembers(user.familyId);
+      final members = await fetchFamilyMembers(user.familyId!);
       yield members;
       yield* _controller.stream;
     } catch (_) {
@@ -62,7 +64,7 @@ class FamilyRepository {
 
       await _familyApiClient.createFamily(family, token);
       final user = await getCurrentUser();
-      _controller.add(await fetchFamilyMembers(user.familyId));
+      _controller.add(await fetchFamilyMembers(user.familyId!));
     } catch (_) {
       throw FamilyCreateFailure();
     }
@@ -78,7 +80,7 @@ class FamilyRepository {
 
       await _familyApiClient.addMemberToFamily(input, token);
       final user = await getCurrentUser();
-      _controller.add(await fetchFamilyMembers(user.familyId));
+      _controller.add(await fetchFamilyMembers(user.familyId!));
     } catch (_) {
       throw Exception('Failed to add member to family');
     }
@@ -136,10 +138,98 @@ class FamilyRepository {
 
       await _familyApiClient.inviteMemberToFamily(input, token);
       final user = await getCurrentUser();
-      _controller.add(await fetchFamilyMembers(user.familyId));
+      _controller.add(await fetchFamilyMembers(user.familyId!));
     } catch (_) {
       throw Exception('Failed to add member to family');
     }
+  }
+
+  // --REWARDS--
+
+  Future<String> createReward(RewardCreateInput input) async {
+    try {
+      final token = await _getJwtToken();
+      if (token == null) {
+        throw Exception('JWT token is missing');
+      }
+      final output = await _familyApiClient.createReward(input, token);
+      print('FamilyRepository - Created reward: $output');
+      return output;
+    } catch (e) {
+      print('Family Repository - Failed to create reward: $e');
+      throw Exception('Failed to create reward');
+    }
+  }
+
+  /// Получение списка вознаграждений семьи
+  Future<List<Reward>> getRewardsByFamilyID(String familyId) async {
+    try {
+      final token = await _getJwtToken();
+      if (token == null) {
+        throw Exception('JWT token is missing');
+      }
+
+      return await _familyApiClient.getRewardsByFamilyID(familyId, token);
+    } catch (e) {
+      print('Failed to get rewards: $e');
+      throw Exception('Failed to get rewards');
+    }
+  }
+
+  /// Получение очков пользователя
+  Future<int> getPoints(String userId) async {
+    try {
+      final token = await _getJwtToken();
+      if (token == null) {
+        throw Exception('JWT token is missing');
+      }
+
+      return await _familyApiClient.getPoints(userId, token);
+    } catch (e) {
+      print('Failed to get points: $e');
+      throw Exception('Failed to get points');
+    }
+  }
+
+  /// Обменять очки на вознаграждение
+  Future<void> redeemReward(String rewardId) async {
+    try {
+      final token = await _getJwtToken();
+      if (token == null) {
+        throw Exception('JWT token is missing');
+      }
+
+      await _familyApiClient.redeemReward(rewardId, token);
+    } catch (e) {
+      print('Failed to redeem reward: $e');
+      throw Exception('Failed to redeem reward');
+    }
+  }
+
+  /// Получение списка обменов пользователя
+  Future<List<RewardRedemption>> getRedemptionsByUserID(String userId) async {
+    try {
+      final token = await _getJwtToken();
+      if (token == null) {
+        throw Exception('JWT token is missing');
+      }
+
+      return await _familyApiClient.getRedemptionsByUserID(userId, token);
+    } catch (e) {
+      print('Failed to get redemptions: $e');
+      throw Exception('Failed to get redemptions');
+    }
+  }
+
+  Future<void> updateFamilyPhoto(String familyId, File photo) async {
+    final token = await _getJwtToken();
+    if (token == null) {
+      throw Exception('JWT token is missing');
+    }
+
+    final input = InputUpdatePhoto(familyId: familyId, photo: photo);
+
+    await _familyApiClient.updateFamilyPhoto(input, token);
   }
 
   void dispose() => _controller.close();

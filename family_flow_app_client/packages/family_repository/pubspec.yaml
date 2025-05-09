@@ -14,6 +14,8 @@ dependencies:
     path: ../family_api
   user_repository:
     path: ../user_repository
+  user_api:
+    path: ../user_api
 
 dev_dependencies:
   flutter_test:
