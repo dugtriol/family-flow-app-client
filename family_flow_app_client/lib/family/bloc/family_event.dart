@@ -61,3 +61,21 @@ class FamilyInviteMemberRequested extends FamilyEvent {
 }
 
 class LoadFamily extends FamilyEvent {}
+
+class CreateRewardRequested extends FamilyEvent {
+  final RewardCreateInput input;
+
+  const CreateRewardRequested({required this.input});
+
+  @override
+  List<Object?> get props => [input];
+}
+
+class RedeemRewardRequested extends FamilyEvent {
+  final String rewardId;
+
+  const RedeemRewardRequested({required this.rewardId});
+
+  @override
+  List<Object?> get props => [rewardId];
+}
