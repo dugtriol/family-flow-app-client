@@ -17,6 +17,7 @@ WishlistItem _$WishlistItemFromJson(Map<String, dynamic> json) => WishlistItem(
   isArchived: json['is_archived'] as bool,
   createdAt: DateTime.parse(json['created_at'] as String),
   updatedAt: DateTime.parse(json['updated_at'] as String),
+  photo: json['photo'] as String?,
 );
 
 Map<String, dynamic> _$WishlistItemToJson(WishlistItem instance) =>
@@ -31,4 +32,5 @@ Map<String, dynamic> _$WishlistItemToJson(WishlistItem instance) =>
       'is_archived': instance.isArchived,
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),
+      'photo': instance.photo,
     };

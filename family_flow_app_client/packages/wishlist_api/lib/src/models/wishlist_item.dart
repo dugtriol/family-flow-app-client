@@ -20,6 +20,7 @@ class WishlistItem extends Equatable {
   final DateTime createdAt;
   @JsonKey(name: 'updated_at')
   final DateTime updatedAt;
+  final String? photo;
 
   const WishlistItem({
     required this.id,
@@ -32,10 +33,28 @@ class WishlistItem extends Equatable {
     required this.isArchived,
     required this.createdAt,
     required this.updatedAt,
+    this.photo,
   });
 
-  factory WishlistItem.fromJson(Map<String, dynamic> json) =>
-      _$WishlistItemFromJson(json);
+  factory WishlistItem.fromJson(Map<String, dynamic> json) {
+    return WishlistItem(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      description: json['description'] as String,
+      link: json['link'] as String,
+      status: json['status'] as String,
+      createdBy: json['created_by'] as String,
+      reservedBy: json['reserved_by'] as Map<String, dynamic>,
+      isArchived: json['is_archived'] as bool,
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
+      photo:
+          json['photo']['Valid']
+                  as bool // Обработка поля photo
+              ? json['photo']['String'] as String
+              : null,
+    );
+  }
 
   Map<String, dynamic> toJson() => _$WishlistItemToJson(this);
 
@@ -51,5 +70,6 @@ class WishlistItem extends Equatable {
     isArchived,
     createdAt,
     updatedAt,
+    photo,
   ];
 }
