@@ -5,7 +5,7 @@ import 'models/models.dart';
 class DiaryApi {
   // static const _baseUrl = 'http://10.0.2.2:8080/api/diary';
   // static const _baseUrl = 'http://family-flow-app-aigul.amvera.io/api';
-  static const _baseUrl = 'http://family-flow-app-1-aigul.amvera.io/api';
+  static const _baseUrl = 'http://family-flow-app-1-aigul.amvera.io/api/diary';
   final http.Client _httpClient;
 
   DiaryApi({http.Client? httpClient})
