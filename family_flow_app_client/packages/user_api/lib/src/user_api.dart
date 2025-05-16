@@ -8,7 +8,9 @@ class UserApiClient {
   UserApiClient({http.Client? httpClient})
     : _httpClient = httpClient ?? http.Client();
 
-  static const _baseUrl = 'http://10.0.2.2:8080/api';
+  // static const _baseUrl = 'http://10.0.2.2:8080/api';
+  // static const _baseUrl = 'http://family-flow-app-aigul.amvera.io/api';
+  static const _baseUrl = 'http://family-flow-app-1-aigul.amvera.io/api';
   final http.Client _httpClient;
 
   Future<User> getUser(String token) async {
@@ -38,35 +40,6 @@ class UserApiClient {
     return user;
   }
 
-  // Future<void> updateUser(String token, UserUpdateInput input) async {
-  //   print(
-  //     'user-api-updateUser: updateUser called with token: $token and input: ${input.toJson()}',
-  //   );
-  //   final uri = Uri.parse('$_baseUrl/user');
-  //   print('user-api-updateUser: Constructed URI: $uri');
-
-  //   final response = await _httpClient.put(
-  //     uri,
-  //     headers: {
-  //       'Content-Type': 'application/json',
-  //       'Authorization': 'Bearer $token',
-  //     },
-  //     body: jsonEncode(input.toJson()),
-  //   );
-  //   print(
-  //     'user-api-updateUser: Response received with status code: ${response.statusCode}',
-  //   );
-
-  //   if (response.statusCode != 200) {
-  //     print(
-  //       'user-api-updateUser: Response status code is not 200. Throwing UserFetchFailure.',
-  //     );
-  //     throw UserFetchFailure();
-  //   }
-
-  //   print('user-api-updateUser: updateUser completed successfully.');
-  // }
-
   Future<void> updateUser(String token, UserUpdateInput input) async {
     print(
       'user-api-updateUser: updateUser called with token: $token and input: ${input.toJson()}',
@@ -74,14 +47,15 @@ class UserApiClient {
     final uri = Uri.parse('$_baseUrl/user');
     final request = http.MultipartRequest('PUT', uri);
 
-    // Добавляем текстовые поля
     request.fields['name'] = input.name;
     request.fields['email'] = input.email;
     request.fields['role'] = input.role;
     request.fields['gender'] = input.gender;
     if (input.birthDate != null) {
-      request.fields['birth_date'] = input.birthDate!.toIso8601String();
+      request.fields['birth_date'] =
+          input.birthDate!.toIso8601String().split('T').first;
     }
+    request.fields['avatar_url'] = input.avatarURL;
 
     // Добавляем файл аватара, если он есть
     if (input.avatar != null) {

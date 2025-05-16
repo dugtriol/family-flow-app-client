@@ -13,6 +13,7 @@ class UserUpdateInput {
     required this.gender,
     required this.birthDate,
     required this.avatar,
+    required this.avatarURL,
   });
 
   final String name;
@@ -21,6 +22,8 @@ class UserUpdateInput {
   final String gender;
   final DateTime? birthDate;
   final File? avatar;
+  @JsonKey(name: 'avatar_url')
+  final String avatarURL;
 
   // UserUpdateInput _$UserUpdateInputFromJson(Map<String, dynamic> json) =>
   //     UserUpdateInput(
@@ -43,6 +46,7 @@ class UserUpdateInput {
               ? DateTime.parse(json['birth_date'] as String)
               : null,
       avatar: null,
+      avatarURL: json['avatar_url'] as String,
     );
   }
 

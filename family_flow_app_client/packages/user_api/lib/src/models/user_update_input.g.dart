@@ -14,4 +14,5 @@ Map<String, dynamic> _$UserUpdateInputToJson(UserUpdateInput instance) =>
       'gender': instance.gender,
       'birth_date': instance.birthDate?.toIso8601String(),
       'avatar': instance.avatar,
+      'avatar_url': instance.avatarURL,
     };
