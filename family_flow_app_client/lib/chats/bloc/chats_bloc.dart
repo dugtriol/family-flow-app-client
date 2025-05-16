@@ -9,6 +9,8 @@ part 'chats_state.dart';
 class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
   final ChatsRepository _chatsRepository;
 
+  final Map<String, String?> _lastReadMessageIds = {};
+
   ChatsBloc({required ChatsRepository chatsRepository})
     : _chatsRepository = chatsRepository,
       super(ChatsInitial()) {
@@ -23,8 +25,22 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
   /// Загрузка чатов
   Future<void> _onLoadChats(ChatsLoad event, Emitter<ChatsState> emit) async {
     try {
+      // Загружаем список чатов
       final chats = await _chatsRepository.getChatsByUserID();
-      emit(ChatsLoadSuccess(chats));
+
+      // Загружаем последние сообщения для каждого чата
+      final updatedChats = await Future.wait(
+        chats.map((chat) async {
+          final lastMessages = await _chatsRepository.getMessagesByChatID(
+            chat.id,
+          );
+          final lastMessage =
+              lastMessages.isNotEmpty ? lastMessages.last : null;
+          return chat.copyWith(lastMessage: lastMessage);
+        }),
+      );
+      print('Загружено чатов: ${updatedChats.length}');
+      emit(ChatsLoadSuccess(updatedChats));
     } catch (e) {
       emit(ChatsLoadFailure(e.toString()));
     }
@@ -99,12 +115,23 @@ class ChatsBloc extends Bloc<ChatsEvent, ChatsState> {
       emit(ChatsMessagesLoadSuccess(messages));
 
       // После загрузки сообщений возвращаемся к списку чатов
-      // final chats = await _chatsRepository.getChatsByUserID();
-      // emit(ChatsLoadSuccess(chats));
+      final chats = await _chatsRepository.getChatsByUserID();
+      emit(ChatsLoadSuccess(chats));
     } catch (e) {
       emit(ChatsLoadFailure(e.toString()));
     }
   }
+
+  /// Получение идентификатора последнего прочитанного сообщения
+  String? getLastReadMessageId(String chatId) {
+    return _lastReadMessageIds[chatId];
+  }
+
+  // /// Пометка сообщений как прочитанных
+  // void markMessagesAsRead(String chatId, String? lastMessageId) {
+  //   _lastReadMessageIds[chatId] = lastMessageId;
+  //   add(const ChatsLoad()); // Обновляем список чатов
+  // }
 
   @override
   Future<void> close() {

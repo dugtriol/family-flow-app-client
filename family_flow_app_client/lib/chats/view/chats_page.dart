@@ -103,6 +103,13 @@ class _ChatsPageState extends State<ChatsPage> {
         ),
         actions: [
           IconButton(
+            icon: const Icon(Icons.refresh, color: Colors.deepPurple),
+            onPressed: () {
+              // Отправляем событие для обновления чатов
+              context.read<ChatsBloc>().add(const ChatsLoad());
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.add, color: Colors.deepPurple),
             onPressed: () {
               // Переход к экрану создания чата
@@ -114,240 +121,121 @@ class _ChatsPageState extends State<ChatsPage> {
         ],
       ),
       backgroundColor: Colors.white,
-      body: BlocBuilder<ChatsBloc, ChatsState>(
-        builder: (context, state) {
-          if (state is ChatsInitial) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (state is ChatsLoadFailure) {
-            return Center(
-              child: Text(
-                'Ошибка: ${state.error}',
-                style: const TextStyle(color: Colors.red),
-              ),
-            );
-          } else if (state is ChatsLoadSuccess) {
-            final chats = state.chats;
-            if (chats.isEmpty) {
-              return const Center(child: Text('Нет доступных чатов.'));
-            }
-            return ListView.builder(
-              itemCount: chats.length,
-              itemBuilder: (context, index) {
-                final chat = chats[index];
-                final participantId =
-                    chat.participants
-                        .firstWhere(
-                          (participant) => participant.userId != userId,
-                        )
-                        .userId;
-                final familyState = context.read<FamilyBloc>().state;
-                String participantName = 'Неизвестно';
-
-                if (familyState is FamilyLoadSuccess) {
-                  participantName =
-                      getParticipantName(participantId, familyState.members) ??
-                      'Неизвестно';
-                }
-
-                return ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: Colors.deepPurple[100],
-                    child: Text(
-                      participantName[0], // Первая буква имени
-                      style: const TextStyle(color: Colors.deepPurple),
-                    ),
-                  ),
-                  title: Text(
-                    participantName,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  onTap: () {
-                    // Переход к деталям чата
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder:
-                            (context) => ChatDetailsPage(
-                              chatId: chat.id,
-                              chatName: participantName,
-                            ),
-                      ),
-                    );
-                  },
-                );
-              },
-            );
-          }
-          return const Center(child: CircularProgressIndicator());
+      body: RefreshIndicator(
+        onRefresh: () async {
+          // Отправляем событие для обновления чатов
+          context.read<ChatsBloc>().add(const ChatsLoad());
         },
+        child: BlocBuilder<ChatsBloc, ChatsState>(
+          builder: (context, state) {
+            if (state is ChatsInitial) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (state is ChatsLoadFailure) {
+              return Center(
+                child: Text(
+                  'Ошибка: ${state.error}',
+                  style: const TextStyle(color: Colors.red),
+                ),
+              );
+            } else if (state is ChatsLoadSuccess) {
+              final chats = state.chats;
+              print('Количество чатов: ${chats.length}');
+              if (chats.isEmpty) {
+                return const Center(child: Text('Нет доступных чатов.'));
+              }
+              return ListView.builder(
+                itemCount: chats.length,
+                itemBuilder: (context, index) {
+                  final chat = chats[index];
+                  final participantId =
+                      chat.participants
+                          .firstWhere(
+                            (participant) => participant.userId != userId,
+                          )
+                          .userId;
+                  final familyState = context.read<FamilyBloc>().state;
+                  String participantName = 'Неизвестно';
+
+                  if (familyState is FamilyLoadSuccess) {
+                    participantName =
+                        getParticipantName(
+                          participantId,
+                          familyState.members,
+                        ) ??
+                        'Неизвестно';
+                  }
+
+                  // Получаем последнее сообщение
+                  final lastMessage =
+                      chat.lastMessage?.content ?? 'Нет сообщений';
+
+                  // Форматируем время последнего сообщения
+                  final lastMessageTime =
+                      chat.lastMessage?.createdAt != null
+                          ? _formatTime(chat.lastMessage!.createdAt!)
+                          : '';
+
+                  return ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: Colors.deepPurple[100],
+                      child: Text(
+                        participantName[0], // Первая буква имени
+                        style: const TextStyle(color: Colors.deepPurple),
+                      ),
+                    ),
+                    title: Text(
+                      participantName,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(
+                      lastMessage,
+                      style: const TextStyle(color: Colors.black54),
+                      maxLines: 1,
+                      overflow:
+                          TextOverflow.ellipsis, // Обрезаем длинные сообщения
+                    ),
+                    trailing: Text(
+                      lastMessageTime,
+                      style: const TextStyle(color: Colors.grey, fontSize: 12),
+                    ),
+                    onTap: () {
+                      // Переход к деталям чата
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder:
+                              (context) => ChatDetailsPage(
+                                chatId: chat.id,
+                                chatName: participantName,
+                              ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              );
+            }
+            print('ChatsPage – State: $state');
+            return const Center(
+              child: CircularProgressIndicator(),
+            ); // Показать индикатор загрузки
+          },
+        ),
       ),
     );
   }
 
-  // @override
-  // Widget build(BuildContext context) {
-  //   return Scaffold(
-  //     appBar: AppBar(
-  //       backgroundColor: Colors.white,
-  //       elevation: 0,
-  //       title: Row(
-  //         children: [
-  //           const Icon(Icons.chat_rounded, color: Colors.deepPurple, size: 28),
-  //           const SizedBox(width: 8),
-  //           const Text(
-  //             'Сообщения',
-  //             style: TextStyle(
-  //               color: Colors.black87,
-  //               fontSize: 20,
-  //               fontWeight: FontWeight.w600,
-  //             ),
-  //           ),
-  //         ],
-  //       ),
-  //     ),
-  //     backgroundColor: Colors.white,
-  //     body: Column(
-  //       children: [
-  //         // Форма для создания чата
-  //         Padding(
-  //           padding: const EdgeInsets.all(16.0),
-  //           child: Column(
-  //             crossAxisAlignment: CrossAxisAlignment.start,
-  //             children: [
-  //               TextField(
-  //                 controller: _chatNameController,
-  //                 decoration: const InputDecoration(
-  //                   labelText: 'Название чата',
-  //                   border: OutlineInputBorder(),
-  //                 ),
-  //               ),
-  //               const SizedBox(height: 8),
-  //               Row(
-  //                 children: [
-  //                   Expanded(
-  //                     child: TextField(
-  //                       controller: _participantIdController,
-  //                       decoration: const InputDecoration(
-  //                         labelText: 'ID участника',
-  //                         border: OutlineInputBorder(),
-  //                       ),
-  //                     ),
-  //                   ),
-  //                   const SizedBox(width: 8),
-  //                   ElevatedButton(
-  //                     onPressed: () {
-  //                       final participantId =
-  //                           _participantIdController.text.trim();
-  //                       if (participantId.isNotEmpty) {
-  //                         setState(() {
-  //                           _participants.add(participantId);
-  //                         });
-  //                         _participantIdController.clear();
-  //                       }
-  //                     },
-  //                     child: const Text('Добавить участника'),
-  //                   ),
-  //                 ],
-  //               ),
-  //               const SizedBox(height: 8),
-  //               Wrap(
-  //                 spacing: 8,
-  //                 children:
-  //                     _participants
-  //                         .map(
-  //                           (id) => Chip(
-  //                             label: Text(id),
-  //                             onDeleted: () {
-  //                               setState(() {
-  //                                 _participants.remove(id);
-  //                               });
-  //                             },
-  //                           ),
-  //                         )
-  //                         .toList(),
-  //               ),
-  //               const SizedBox(height: 16),
-  //               ElevatedButton(
-  //                 onPressed: () {
-  //                   final chatName = _chatNameController.text.trim();
-  //                   if (chatName.isNotEmpty && _participants.isNotEmpty) {
-  //                     context.read<ChatsBloc>().add(
-  //                       ChatsCreateChatWithParticipants(
-  //                         name: chatName,
-  //                         participantIds: List.from(_participants),
-  //                       ),
-  //                     );
-  //                     setState(() {
-  //                       _chatNameController.clear();
-  //                       _participants.clear();
-  //                     });
-  //                   }
-  //                 },
-  //                 child: const Text('Создать чат'),
-  //               ),
-  //             ],
-  //           ),
-  //         ),
-  //         const Divider(),
-  //         // Список чатов
-  //         Expanded(
-  //           child: BlocBuilder<ChatsBloc, ChatsState>(
-  //             builder: (context, state) {
-  //               if (state is ChatsInitial) {
-  //                 return const Center(child: CircularProgressIndicator());
-  //               } else if (state is ChatsLoadFailure) {
-  //                 return Center(
-  //                   child: Text(
-  //                     'Ошибка: ${state.error}',
-  //                     style: const TextStyle(color: Colors.red),
-  //                   ),
-  //                 );
-  //               } else if (state is ChatsLoadSuccess) {
-  //                 final chats = state.chats;
-  //                 if (chats.isEmpty) {
-  //                   return const Center(child: Text('Нет доступных чатов.'));
-  //                 }
-  //                 return ListView.builder(
-  //                   itemCount: chats.length,
-  //                   itemBuilder: (context, index) {
-  //                     final chat = chats[index];
-  //                     return ListTile(
-  //                       leading: CircleAvatar(
-  //                         backgroundColor: Colors.deepPurple[100],
-  //                         child: Text(
-  //                           chat.name[0], // Первая буква имени чата
-  //                           style: const TextStyle(color: Colors.deepPurple),
-  //                         ),
-  //                       ),
-  //                       title: Text(
-  //                         chat.name,
-  //                         style: const TextStyle(fontWeight: FontWeight.bold),
-  //                       ),
-  //                       subtitle: Text(
-  //                         'Участники: ${2}',
-  //                         style: const TextStyle(color: Colors.grey),
-  //                       ),
-  //                       onTap: () {
-  //                         // Переход к деталям чата
-  //                         Navigator.of(context).push(
-  //                           MaterialPageRoute(
-  //                             builder:
-  //                                 (context) => ChatDetailsPage(
-  //                                   chatId: chat.id,
-  //                                   chatName: chat.name,
-  //                                 ),
-  //                           ),
-  //                         );
-  //                       },
-  //                     );
-  //                   },
-  //                 );
-  //               }
-  //               return const Center(child: CircularProgressIndicator());
-  //             },
-  //           ),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
+  String _formatTime(DateTime dateTime) {
+    // Добавляем 3 часа для московского времени
+    final moscowTime = dateTime.toUtc().add(const Duration(hours: 3));
+    final now = DateTime.now().toUtc().add(const Duration(hours: 3));
+    final difference = now.difference(moscowTime);
+
+    if (difference.inDays > 0) {
+      // Если сообщение было отправлено более чем за день назад
+      return '${moscowTime.day}.${moscowTime.month}.${moscowTime.year}';
+    } else {
+      // Если сообщение было отправлено сегодня
+      return '${moscowTime.hour}:${moscowTime.minute.toString().padLeft(2, '0')}';
+    }
+  }
 }
