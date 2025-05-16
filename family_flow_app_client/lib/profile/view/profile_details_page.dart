@@ -94,22 +94,30 @@ class _ProfileDetailsPageState extends State<ProfileDetailsPage> {
     final currentName = nameController.text;
     final currentEmail = emailController.text;
 
+    // Преобразуем дату в формат YYYY-MM-DD
+    final formattedBirthDate =
+        _selectedBirthDate.isNotEmpty
+            ? DateTime.parse(
+              _selectedBirthDate,
+            ).toIso8601String().split('T').first
+            : '';
+
     if (currentName != initialName ||
         currentEmail != initialEmail ||
         _selectedRole != initialRole ||
         _selectedGender != initialGender ||
-        _selectedBirthDate != initialBirthDate ||
+        formattedBirthDate != initialBirthDate ||
         _selectedAvatar != null) {
       print('Profile data changed. Updating...');
       context.read<ProfileBloc>().add(
         ProfileUpdateRequested(
           name: currentName,
           email: currentEmail,
-          // phone: currentPhone,
           role: _selectedRole,
           gender: _selectedGender,
-          birthDate: _selectedBirthDate,
-          avatar: _selectedAvatar?.path ?? initialAvatar,
+          birthDate: formattedBirthDate, // Передаем отформатированную дату
+          avatar: _selectedAvatar?.path ?? '',
+          avatarUrl: _selectedAvatar != null ? 'empty' : initialAvatar,
         ),
       );
 
@@ -118,8 +126,8 @@ class _ProfileDetailsPageState extends State<ProfileDetailsPage> {
       initialEmail = currentEmail;
       initialRole = _selectedRole;
       initialGender = _selectedGender;
-      initialBirthDate = _selectedBirthDate;
-      initialAvatar = _avatarPath ?? initialAvatar;
+      initialBirthDate = formattedBirthDate;
+      initialAvatar = _selectedAvatar != null ? 'empty' : initialAvatar;
       _avatarPath = null;
     }
   }
@@ -141,7 +149,7 @@ class _ProfileDetailsPageState extends State<ProfileDetailsPage> {
 
     return WillPopScope(
       onWillPop: () async {
-        await _updateProfileIfChanged();
+        // await _updateProfileIfChanged();
         return true;
       },
       child: Scaffold(
@@ -159,7 +167,7 @@ class _ProfileDetailsPageState extends State<ProfileDetailsPage> {
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.black87),
             onPressed: () async {
-              await _updateProfileIfChanged();
+              // await _updateProfileIfChanged();
               if (mounted) {
                 Navigator.of(context).pop();
               }
@@ -178,25 +186,6 @@ class _ProfileDetailsPageState extends State<ProfileDetailsPage> {
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
-                  // CircleAvatar(
-                  //   radius: 50,
-                  //   backgroundColor: Colors.deepPurple,
-                  //   backgroundImage:
-                  //       user.avatar != null ? NetworkImage(user.avatar!) : null,
-                  //   child:
-                  //       user.avatar == null
-                  //           ? Text(
-                  //             user.name.isNotEmpty
-                  //                 ? user.name[0].toUpperCase()
-                  //                 : '?',
-                  //             style: const TextStyle(
-                  //               fontSize: 40,
-                  //               fontWeight: FontWeight.bold,
-                  //               color: Colors.white,
-                  //             ),
-                  //           )
-                  //           : null,
-                  // ),
                   GestureDetector(
                     onTap: _pickImage,
                     child: CircleAvatar(
@@ -204,11 +193,11 @@ class _ProfileDetailsPageState extends State<ProfileDetailsPage> {
                       backgroundImage:
                           _selectedAvatar != null
                               ? FileImage(_selectedAvatar!)
-                              : (user.avatar != null
-                                  ? NetworkImage(user.avatar!) as ImageProvider
+                              : (initialAvatar.isNotEmpty
+                                  ? NetworkImage(initialAvatar) as ImageProvider
                                   : null),
                       child:
-                          _selectedAvatar == null && user.avatar == null
+                          _selectedAvatar == null && initialAvatar.isEmpty
                               ? const Icon(Icons.camera_alt, size: 30)
                               : null,
                     ),
@@ -218,24 +207,6 @@ class _ProfileDetailsPageState extends State<ProfileDetailsPage> {
                     'Нажмите, чтобы изменить аватар',
                     style: TextStyle(fontSize: 14, color: Colors.black54),
                   ),
-                  // const SizedBox(height: 8),
-                  // TextButton.icon(
-                  //   onPressed: () async {
-                  //     final pickedFile = await ImagePicker().pickImage(
-                  //       source: ImageSource.gallery,
-                  //     );
-                  //     if (pickedFile != null) {
-                  //       setState(() {
-                  //         _avatarPath = pickedFile.path;
-                  //       });
-                  //     }
-                  //   },
-                  //   icon: const Icon(Icons.upload, color: Colors.deepPurple),
-                  //   label: const Text(
-                  //     'Загрузить аватар',
-                  //     style: TextStyle(color: Colors.deepPurple),
-                  //   ),
-                  // ),
                   const SizedBox(height: 16),
                   Container(
                     decoration: BoxDecoration(
@@ -347,17 +318,21 @@ class _ProfileDetailsPageState extends State<ProfileDetailsPage> {
                                       _selectedRole == 'Child',
                                     ],
                                     onPressed: (index) {
-                                      setState(() {
-                                        if (_selectedRole ==
-                                            (index == 0 ? 'Parent' : 'Child')) {
-                                          _selectedRole =
-                                              'Unknown'; // Сбрасываем выбор
-                                        } else {
-                                          _selectedRole =
-                                              index == 0 ? 'Parent' : 'Child';
-                                        }
-                                      });
+                                      index = user.role == 'Parent' ? 0 : 1;
+                                      _selectedRole ==
+                                          (index == 0 ? 'Parent' : 'Child');
+                                      // setState(() {
+                                      //   if (_selectedRole ==
+                                      //       (index == 0 ? 'Parent' : 'Child')) {
+                                      //     _selectedRole =
+                                      //         'Unknown'; // Сбрасываем выбор
+                                      //   } else {
+                                      //     _selectedRole =
+                                      //         index == 0 ? 'Parent' : 'Child';
+                                      //   }
+                                      // });
                                     },
+                                    // onPressed: null,
                                     borderRadius: BorderRadius.circular(8),
                                     selectedColor: Colors.white,
                                     fillColor: Colors.deepPurple,

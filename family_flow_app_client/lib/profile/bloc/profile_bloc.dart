@@ -24,13 +24,17 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
 
   final AuthenticationBloc _authenticationBloc;
   final FamilyBloc _familyBloc;
+  bool _isProfileLoading = false;
 
   Future<void> _onProfileRequested(
     ProfileRequested event,
     Emitter<ProfileState> emit,
   ) async {
-    print('ProfileRequested event received');
     _authenticationBloc.add(AuthenticationUserRefreshed());
+    if (_isProfileLoading) return; // Если профиль уже загружается, выходим
+    _isProfileLoading = true;
+
+    print('ProfileRequested event received');
     final user = _authenticationBloc.state.user;
 
     if (user != null) {
@@ -38,20 +42,22 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       try {
         String? familyName;
 
-        // Проверяем, есть ли familyId
         if (user.familyId != null && user.familyId!.isNotEmpty) {
           print('Fetching family data for familyId: ${user.familyId}');
-          // Получаем состояние FamilyBloc
           final familyState = _familyBloc.state;
+
+          // Проверяем, загружены ли данные семьи
           if (familyState is FamilyLoadSuccess) {
             final family = familyState.members.firstWhere(
               (member) => member.id == user.familyId,
-              orElse: () => User.empty, // Возвращаем пустого пользователя
+              orElse: () => User.empty,
             );
             familyName = family.name;
             print('Family data fetched successfully: $familyName');
           } else {
-            print('Family data not loaded yet');
+            // Если данные семьи не загружены, отправляем событие для загрузки
+            _familyBloc.add(FamilyRequested());
+            print('Family data not loaded yet, requesting family data...');
           }
         } else {
           print('User has no familyId');
@@ -67,6 +73,8 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       print('User not found in authentication state');
       emit(const ProfileLoadFailure(error: 'User not found.'));
     }
+
+    _isProfileLoading = false; // Сбрасываем флаг после завершения загрузки
   }
 
   void _onLogoutRequested(
@@ -84,10 +92,29 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     ProfileUpdateRequested event,
     Emitter<ProfileState> emit,
   ) {
+    _authenticationBloc.add(AuthenticationUserRefreshed());
     print('ProfileUpdateRequested event received');
     print('Updating profile with name: ${event.name}, email: ${event.email}');
 
+    final avatarFile = event.avatar.isNotEmpty ? File(event.avatar) : null;
+    final avatarUrl = event.avatar.isNotEmpty ? 'empty' : event.avatarUrl;
+    final formattedBirthDate =
+        event.birthDate.isNotEmpty
+            ? DateTime.parse(event.birthDate).toIso8601String().split('T').first
+            : null;
     // Отправляем событие в AuthenticationBloc
+    print(
+      'Dispatching AuthenticationProfileUpdateRequested with the following fields:',
+    );
+    print('Name: ${event.name}');
+    print('Email: ${event.email}');
+    print('Role: ${event.role}');
+    print('Gender: ${event.gender}');
+    print('BirthDate: ${event.birthDate}');
+    print(
+      'Avatar: ${event.avatar.isNotEmpty ? event.avatar : 'No avatar provided'}',
+    );
+    print('AvatarUrl: $avatarUrl');
     _authenticationBloc.add(
       AuthenticationProfileUpdateRequested(
         name: event.name,
@@ -95,7 +122,8 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         role: event.role,
         gender: event.gender,
         birthDate: event.birthDate,
-        avatar: event.avatar.isNotEmpty ? File(event.avatar) : null,
+        avatar: avatarFile,
+        avatarUrl: avatarUrl,
       ),
     );
 

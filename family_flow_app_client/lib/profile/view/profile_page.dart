@@ -1,3 +1,5 @@
+import 'package:authentication_repository/authentication_repository.dart'
+    show AuthenticationRepository;
 import 'package:family_flow_app_client/family/family.dart';
 import 'package:family_flow_app_client/profile/bloc/profile_bloc.dart';
 import 'package:family_repository/family_repository.dart';
@@ -8,6 +10,7 @@ import '../../authentication/authentication.dart';
 import '../../diary/diary.dart';
 import '../../notifications/notifications.dart';
 import 'profile_details_page.dart';
+import 'widgets/widgets.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -17,10 +20,15 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  static var _isProfileLoaded = false;
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Отправляем событие для обновления профиля
+    // Отправляем событие только один раз
+    // if (!_isProfileLoaded) {
+    //   context.read<ProfileBloc>().add(ProfileRequested());
+    //   _isProfileLoaded = true;
+    // }
     context.read<ProfileBloc>().add(ProfileRequested());
   }
 
@@ -50,175 +58,205 @@ class _ProfilePageState extends State<ProfilePage> {
         onRefresh: () async {
           // Отправляем событие для обновления профиля
           context.read<ProfileBloc>().add(ProfileRequested());
+          context.read<FamilyBloc>().add(FamilyRequested());
           await Future.delayed(
             const Duration(seconds: 1),
           ); // Для имитации загрузки
         },
-        child: BlocBuilder<ProfileBloc, ProfileState>(
-          builder: (context, state) {
-            if (state is ProfileLoadSuccess) {
-              final user = state.user;
-              return SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Аватар и информация о пользователе
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder:
-                                  (_) => BlocProvider.value(
-                                    value: context.read<ProfileBloc>(),
-                                    child: const ProfileDetailsPage(),
-                                  ),
-                            ),
-                          );
-                        },
-                        child: Row(
-                          children: [
-                            // const ProfileAvatar(),
-                            CircleAvatar(
-                              radius: 40,
-                              backgroundColor: Colors.deepPurple,
-                              backgroundImage:
-                                  user.avatar != null && user.avatar!.isNotEmpty
-                                      ? NetworkImage(
-                                        user.avatar!,
-                                      ) // Загружаем фото, если оно есть
-                                      : null,
-                              child:
-                                  user.avatar == null || user.avatar!.isEmpty
-                                      ? Text(
-                                        user.name.isNotEmpty
-                                            ? user.name[0].toUpperCase()
-                                            : '?',
-                                        style: const TextStyle(
-                                          fontSize: 40,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                        ),
-                                      )
-                                      : null,
-                            ),
-                            const SizedBox(height: 16),
-                            const SizedBox(width: 16),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  user.name,
-                                  style: const TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  user.email,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      // Вкладки для перехода
-                      ProfileOption(
-                        icon: Icons.notifications,
-                        label: 'Уведомления',
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => const NotificationsSettingsPage(),
-                            ),
-                          );
-                        },
-                      ),
-                      const Divider(),
-                      ProfileOption(
-                        icon: Icons.group,
-                        label: 'Семья',
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder:
-                                  (_) => BlocProvider.value(
-                                    value: context.read<FamilyBloc>(),
-                                    child: const FamilyPage(),
-                                  ),
-                            ),
-                          );
-                        },
-                      ),
-                      const Divider(),
-                      ProfileOption(
-                        icon: Icons.book,
-                        label: 'Дневник',
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder:
-                                  (_) => BlocProvider(
-                                    create:
-                                        (_) =>
-                                            DiaryBloc()..add(DiaryRequested()),
-                                    child: const DiaryPage(),
-                                  ),
-                            ),
-                          );
-                        },
-                      ),
-                      const Divider(),
-                      ProfileOption(
-                        icon: Icons.password,
-                        label: 'Сбросить пароль',
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder:
-                                  (_) => const PlaceholderScreen(
-                                    title: 'Сбросить пароль',
-                                  ),
-                            ),
-                          );
-                        },
-                      ),
-                      const Divider(),
-
-                      // Кнопка "Выйти"
-                      ProfileOption(
-                        icon: Icons.logout,
-                        label: 'Выйти',
-                        onTap: () {
-                          context.read<ProfileBloc>().add(
-                            ProfileLogoutRequested(),
-                          );
-                        },
-                        isDestructive: true,
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            } else if (state is ProfileLoadFailure) {
-              return Center(
-                child: Text(
-                  'Не удалось загрузить профиль: ${state.error}',
-                  style: const TextStyle(color: Colors.red),
-                ),
-              );
+        child: BlocListener<AuthenticationBloc, AuthenticationState>(
+          listener: (context, state) {
+            if (state is AuthenticationProfileUpdated) {
+              // Обновляем данные профиля, но не переходим на другой экран
+              context.read<ProfileBloc>().add(ProfileRequested());
             }
-            return const Center(child: CircularProgressIndicator());
           },
+          child: BlocBuilder<ProfileBloc, ProfileState>(
+            builder: (context, state) {
+              if (state is ProfileLoadSuccess) {
+                final user = state.user;
+                return SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Аватар и информация о пользователе
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder:
+                                    (_) => BlocProvider.value(
+                                      value: context.read<ProfileBloc>(),
+                                      child: const ProfileDetailsPage(),
+                                    ),
+                              ),
+                            );
+                          },
+                          child: Row(
+                            children: [
+                              // const ProfileAvatar(),
+                              CircleAvatar(
+                                radius: 40,
+                                backgroundColor: Colors.deepPurple,
+                                backgroundImage:
+                                    user.avatar != null &&
+                                            user.avatar!.isNotEmpty
+                                        ? NetworkImage(
+                                          user.avatar!,
+                                        ) // Загружаем фото, если оно есть
+                                        : null,
+                                child:
+                                    user.avatar == null || user.avatar!.isEmpty
+                                        ? Text(
+                                          user.name.isNotEmpty
+                                              ? user.name[0].toUpperCase()
+                                              : '?',
+                                          style: const TextStyle(
+                                            fontSize: 40,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                        )
+                                        : null,
+                              ),
+                              const SizedBox(height: 16),
+                              const SizedBox(width: 16),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    user.name,
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    user.email,
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        // Вкладки для перехода
+                        // ProfileOption(
+                        //   icon: Icons.notifications,
+                        //   label: 'Уведомления',
+                        //   onTap: () {
+                        //     Navigator.of(context).push(
+                        //       MaterialPageRoute(
+                        //         builder:
+                        //             (_) => const NotificationsSettingsPage(),
+                        //       ),
+                        //     );
+                        //   },
+                        // ),
+                        // const Divider(),
+                        ProfileOption(
+                          icon: Icons.group,
+                          label: 'Семья',
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder:
+                                    (_) => BlocProvider.value(
+                                      value: context.read<FamilyBloc>(),
+                                      child: const FamilyPage(),
+                                    ),
+                              ),
+                            );
+                          },
+                        ),
+                        const Divider(),
+                        ProfileOption(
+                          icon: Icons.book,
+                          label: 'Дневник',
+                          onTap: () {
+                            // Отправляем событие DiaryRequested
+                            context.read<DiaryBloc>().add(DiaryRequested());
+
+                            // Переходим на страницу дневника
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder:
+                                    (_) => BlocProvider.value(
+                                      value: context.read<DiaryBloc>(),
+                                      child: const DiaryPage(),
+                                    ),
+                              ),
+                            );
+                          },
+                        ),
+                        const Divider(),
+                        // ProfileOption(
+                        //   icon: Icons.password,
+                        //   label: 'Сбросить пароль',
+                        //   onTap: () {
+                        //     Navigator.of(context).push(
+                        //       MaterialPageRoute(
+                        //         builder:
+                        //             (_) => const PlaceholderScreen(
+                        //               title: 'Сбросить пароль',
+                        //             ),
+                        //       ),
+                        //     );
+                        //   },
+                        // ),
+                        ProfileOption(
+                          icon: Icons.password,
+                          label: 'Сбросить пароль',
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder:
+                                    (_) => ResetPasswordPage(
+                                      authenticationRepository:
+                                          context
+                                              .read<AuthenticationRepository>(),
+                                      email: user.email,
+                                    ),
+                              ),
+                            );
+                          },
+                        ),
+                        const Divider(),
+
+                        // Кнопка "Выйти"
+                        ProfileOption(
+                          icon: Icons.logout,
+                          label: 'Выйти',
+                          onTap: () {
+                            context.read<ProfileBloc>().add(
+                              ProfileLogoutRequested(),
+                            );
+                          },
+                          isDestructive: true,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              } else if (state is ProfileLoadFailure) {
+                return Center(
+                  child: Text(
+                    'Не удалось загрузить профиль: ${state.error}',
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                );
+              }
+              return const Center(child: CircularProgressIndicator());
+            },
+          ),
         ),
       ),
     );
