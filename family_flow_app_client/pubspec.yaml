@@ -21,8 +21,6 @@ dependencies:
     path: packages/user_repository
   form_inputs:
     path: packages/form_inputs
-  task_repository:
-    path: packages/task_repository
   json_annotation: ^4.8.1
   shared_preferences: ^2.0.15
   family_repository:
@@ -41,14 +39,36 @@ dependencies:
     path: packages/wishlist_repository
   wishlist_api:
     path: packages/wishlist_api
-  intl: ^0.18.0
+  intl: ^0.19.0
   table_calendar: ^3.0.9
-  geolocator: ^9.0.2
+  geolocator: ^14.0.0
   location: ^5.0.0
   yandex_mapkit: ^4.1.0
   permission_handler: ^12.0.0+1
   user_api:
     path: packages/user_api
+  firebase_messaging: ^15.2.5
+  firebase_core: ^3.13.0
+  notification_api:
+    path: packages/notification_api
+  notification_repository:
+    path: packages/notification_repository
+  flutter_local_notifications: ^19.1.0
+  web_socket_channel: ^3.0.3
+  chats_api:
+    path: packages/chats_api
+  chats_repository:
+    path: packages/chats_repository
+  image_picker: ^1.1.2
+  flutter_localizations:
+    sdk: flutter
+  # geolocator_android: ^5.0.1+1
+  diary_api:
+   path: packages/diary_api
+  diary_repository:
+   path: packages/diary_repository
+  emoji_picker_flutter: ^4.3.0
+  timezone: ^0.10.0
   
 
 dev_dependencies:
