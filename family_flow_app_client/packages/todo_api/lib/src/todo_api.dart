@@ -9,7 +9,9 @@ class TodoApiClient {
   TodoApiClient({http.Client? httpClient})
     : _httpClient = httpClient ?? http.Client();
 
-  static const _baseUrl = 'http://10.0.2.2:8080/api';
+  // static const _baseUrl = 'http://10.0.2.2:8080/api';
+  // static const _baseUrl = 'http://family-flow-app-aigul.amvera.io/api';
+  static const _baseUrl = 'http://family-flow-app-1-aigul.amvera.io/api';
   final http.Client _httpClient;
 
   /// Method to create a todo item

@@ -17,7 +17,9 @@ class ShoppingApiClient {
   ShoppingApiClient({http.Client? httpClient})
     : _httpClient = httpClient ?? http.Client();
 
-  static const _baseUrl = 'http://10.0.2.2:8080/api';
+  // static const _baseUrl = 'http://10.0.2.2:8080/api';
+  // static const _baseUrl = 'http://family-flow-app-aigul.amvera.io/api';
+  static const _baseUrl = 'http://family-flow-app-1-aigul.amvera.io/api';
   final http.Client _httpClient;
 
   /// Method to create a shopping item
@@ -83,6 +85,28 @@ class ShoppingApiClient {
   }
 
   /// Method to fetch public shopping items by family ID
+  // Future<List<ShoppingItem>> getPublicShoppingItems(
+  //   String familyId,
+  //   String token,
+  // ) async {
+  //   final uri = Uri.parse('$_baseUrl/shopping/public?family_id=$familyId');
+  //   print('Fetching public shopping items for family ID: $familyId');
+
+  //   final response = await _httpClient.get(
+  //     uri,
+  //     headers: {'Authorization': 'Bearer $token'},
+  //   );
+
+  //   print('Response status code: ${response.statusCode}');
+  //   if (response.statusCode != 200) {
+  //     print('Failed to fetch public shopping items. Throwing exception.');
+  //     throw ShoppingFetchFailure();
+  //   }
+
+  //   final responseBody = jsonDecode(utf8.decode(response.bodyBytes)) as List;
+  //   print('Successfully fetched public shopping items: $responseBody');
+  //   return responseBody.map((json) => ShoppingItem.fromJson(json)).toList();
+  // }
   Future<List<ShoppingItem>> getPublicShoppingItems(
     String familyId,
     String token,
@@ -90,37 +114,84 @@ class ShoppingApiClient {
     final uri = Uri.parse('$_baseUrl/shopping/public?family_id=$familyId');
     print('Fetching public shopping items for family ID: $familyId');
 
-    final response = await _httpClient.get(
-      uri,
-      headers: {'Authorization': 'Bearer $token'},
-    );
+    try {
+      final response = await _httpClient.get(
+        uri,
+        headers: {'Authorization': 'Bearer $token'},
+      );
 
-    print('Response status code: ${response.statusCode}');
-    if (response.statusCode != 200) {
-      print('Failed to fetch public shopping items. Throwing exception.');
-      throw ShoppingFetchFailure();
+      print('Response status code: ${response.statusCode}');
+      if (response.statusCode != 200) {
+        print(
+          'Failed to fetch public shopping items. Returning an empty list.',
+        );
+        return [];
+      }
+
+      if (response.body.isEmpty || response.body == 'null') {
+        print('Response body is empty or null. Returning an empty list.');
+        return [];
+      }
+
+      final responseBody = jsonDecode(utf8.decode(response.bodyBytes)) as List;
+      print('Successfully fetched public shopping items: $responseBody');
+      return responseBody.map((json) => ShoppingItem.fromJson(json)).toList();
+    } catch (e) {
+      print(
+        'Error fetching public shopping items: $e. Returning an empty list.',
+      );
+      return [];
     }
-
-    final responseBody = jsonDecode(utf8.decode(response.bodyBytes)) as List;
-    print('Successfully fetched public shopping items: $responseBody');
-    return responseBody.map((json) => ShoppingItem.fromJson(json)).toList();
   }
 
   /// Method to fetch private shopping items by created by
+  // Future<List<ShoppingItem>> getPrivateShoppingItems(String token) async {
+  //   final uri = Uri.parse('$_baseUrl/shopping/private');
+
+  //   final response = await _httpClient.get(
+  //     uri,
+  //     headers: {'Authorization': 'Bearer $token'},
+  //   );
+
+  //   if (response.statusCode != 200) {
+  //     throw ShoppingFetchFailure();
+  //   }
+
+  //   final responseBody = jsonDecode(utf8.decode(response.bodyBytes)) as List;
+  //   return responseBody.map((json) => ShoppingItem.fromJson(json)).toList();
+  // }
   Future<List<ShoppingItem>> getPrivateShoppingItems(String token) async {
     final uri = Uri.parse('$_baseUrl/shopping/private');
+    print('Fetching private shopping items...');
 
-    final response = await _httpClient.get(
-      uri,
-      headers: {'Authorization': 'Bearer $token'},
-    );
+    try {
+      final response = await _httpClient.get(
+        uri,
+        headers: {'Authorization': 'Bearer $token'},
+      );
 
-    if (response.statusCode != 200) {
-      throw ShoppingFetchFailure();
+      print('Response status code: ${response.statusCode}');
+      if (response.statusCode != 200) {
+        print(
+          'Failed to fetch private shopping items. Returning an empty list.',
+        );
+        return [];
+      }
+
+      if (response.body.isEmpty || response.body == 'null') {
+        print('Response body is empty or null. Returning an empty list.');
+        return [];
+      }
+
+      final responseBody = jsonDecode(utf8.decode(response.bodyBytes)) as List;
+      print('Successfully fetched private shopping items: $responseBody');
+      return responseBody.map((json) => ShoppingItem.fromJson(json)).toList();
+    } catch (e) {
+      print(
+        'Error fetching private shopping items: $e. Returning an empty list.',
+      );
+      return [];
     }
-
-    final responseBody = jsonDecode(utf8.decode(response.bodyBytes)) as List;
-    return responseBody.map((json) => ShoppingItem.fromJson(json)).toList();
   }
 
   /// Method to delete a shopping item by ID

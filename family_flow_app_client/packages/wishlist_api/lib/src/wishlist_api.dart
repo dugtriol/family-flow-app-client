@@ -16,7 +16,9 @@ class WishlistApiClient {
   WishlistApiClient({http.Client? httpClient})
     : _httpClient = httpClient ?? http.Client();
 
-  static const _baseUrl = 'http://10.0.2.2:8080/api';
+  // static const _baseUrl = 'http://10.0.2.2:8080/api';
+  // static const _baseUrl = 'http://family-flow-app-aigul.amvera.io/api';
+  static const _baseUrl = 'http://family-flow-app-1-aigul.amvera.io/api';
   final http.Client _httpClient;
 
   /// Method to create a wishlist item
@@ -174,19 +176,23 @@ class WishlistApiClient {
       return [];
     }
 
-    final responseBody = jsonDecode(utf8.decode(response.bodyBytes)) as List;
-    print('Decoded response body: $responseBody');
+    try {
+      final responseBody = jsonDecode(utf8.decode(response.bodyBytes)) as List;
+      print('Decoded response body: $responseBody');
 
-    if (responseBody.isEmpty) {
-      print('Response body is an empty list. Returning an empty list.');
+      if (responseBody.isEmpty) {
+        print('Response body is an empty list. Returning an empty list.');
+        return [];
+      }
+      final wishlistItems =
+          responseBody.map((json) => WishlistItem.fromJson(json)).toList();
+      print('Parsed wishlist items: $wishlistItems');
+
+      return wishlistItems;
+    } catch (e) {
+      print('Error decoding response body: $e. Returning an empty list.');
       return [];
     }
-
-    final wishlistItems =
-        responseBody.map((json) => WishlistItem.fromJson(json)).toList();
-    print('Parsed wishlist items: $wishlistItems');
-
-    return wishlistItems;
   }
 
   /// Method to update the reserved by field of a wishlist item

@@ -59,7 +59,7 @@ class NotificationRepository {
       throw Exception('JWT token is missing');
     }
     try {
-      print('FCM Token: $fcmToken');
+      print('NotificationRepository - FCM Token: $fcmToken');
       await _notificationApi.sendFcmTokenToServer(fcmToken, token);
     } catch (e) {
       print('Ошибка при отправке FCM Token: $e');
@@ -92,6 +92,22 @@ class NotificationRepository {
     } catch (e) {
       print('Ошибка при получении уведомлений: $e');
       return [];
+    }
+  }
+
+  Future<void> respond({required RespondToInviteInput input}) async {
+    final token = await _getJwtToken();
+    if (token == null) {
+      print('JWT token is missing');
+      throw Exception('JWT token is missing');
+    }
+
+    try {
+      await _notificationApi.respondToInvite(input: input, token: token);
+      print('Ответ на приглашение успешно отправлен');
+    } catch (e) {
+      print('Ошибка при отправке ответа на приглашение: $e');
+      throw Exception('Failed to respond to invite');
     }
   }
 }

@@ -4,7 +4,9 @@ import 'package:http/http.dart' as http;
 import '../models/models.dart';
 
 class NotificationApi {
-  static const _baseUrl = 'http://10.0.2.2:8080/api';
+  // static const _baseUrl = 'http://10.0.2.2:8080/api';
+  // static const _baseUrl = 'http://family-flow-app-aigul.amvera.io/api';
+  static const _baseUrl = 'http://family-flow-app-1-aigul.amvera.io/api';
 
   /// Отправка FCM токена на сервер
   Future<void> sendFcmTokenToServer(String fcmToken, String token) async {
@@ -73,6 +75,32 @@ class NotificationApi {
     } catch (e) {
       print('Ошибка при получении уведомлений: $e');
       return [];
+    }
+  }
+
+  /// Отправка ответа на приглашение
+  Future<void> respondToInvite({
+    required RespondToInviteInput input,
+    required String token,
+  }) async {
+    print('Отправка ответа на приглашение: $input');
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/family/respond-invite'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(input.toJson()), // Используем метод toJson из модели
+      );
+
+      if (response.statusCode == 200) {
+        print('Ответ на приглашение успешно отправлен');
+      } else {
+        print('Ошибка при отправке ответа на приглашение: ${response.body}');
+      }
+    } catch (e) {
+      print('Ошибка при отправке ответа на приглашение: $e');
     }
   }
 }

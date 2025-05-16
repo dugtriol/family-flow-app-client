@@ -16,40 +16,61 @@ class UserRepository {
   }
 
   /// Получение данных пользователя
+  // Future<User?> getUser() async {
+  //   print("getUser");
+  //   if (_user != null) return _user;
+
+  //   final token = await _getJwtToken();
+  //   print("getUser - token: $token");
+  //   if (token == null) {
+  //     print("getUser - token is null");
+  //     return Future.delayed(
+  //       const Duration(milliseconds: 300),
+  //       () => _user = User.empty,
+  //     );
+  //   }
+
+  //   try {
+  //     final _user = await _userApiClient.getUser(token);
+  //     print("getUser - userGet: $_user");
+
+  //     // Преобразуем UserGet в User
+  //     // _user = User(
+  //     //   id: userGet.id,
+  //     //   name: userGet.name,
+  //     //   email: userGet.email,
+  //     //   role: userGet.role,
+  //     //   familyId: userGet.familyId,
+  //     // );
+  //     print("getUser - user: $_user");
+  //     return _user;
+  //   } catch (e) {
+  //     print("getUser - error: $e");
+  //     return Future.delayed(
+  //       const Duration(milliseconds: 300),
+  //       () => _user = User.empty,
+  //     );
+  //   }
+  // }
+
   Future<User?> getUser() async {
     print("getUser");
-    if (_user != null) return _user;
+    // if (_user != null) return _user;
 
     final token = await _getJwtToken();
     print("getUser - token: $token");
     if (token == null) {
       print("getUser - token is null");
-      return Future.delayed(
-        const Duration(milliseconds: 300),
-        () => _user = User.empty,
-      );
+      return null;
     }
 
     try {
-      final _user = await _userApiClient.getUser(token);
+      _user = await _userApiClient.getUser(token);
       print("getUser - userGet: $_user");
-
-      // Преобразуем UserGet в User
-      // _user = User(
-      //   id: userGet.id,
-      //   name: userGet.name,
-      //   email: userGet.email,
-      //   role: userGet.role,
-      //   familyId: userGet.familyId,
-      // );
-      print("getUser - user: $_user");
       return _user;
     } catch (e) {
       print("getUser - error: $e");
-      return Future.delayed(
-        const Duration(milliseconds: 300),
-        () => _user = User.empty,
-      );
+      return null;
     }
   }
 
