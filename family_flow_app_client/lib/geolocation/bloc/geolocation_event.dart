@@ -26,6 +26,15 @@ class AddMarker extends GeolocationEvent {
   List<Object> get props => [location, name];
 }
 
+// class AddMarker extends GeolocationEvent {
+//   final List<User> members;
+
+//   const AddMarker(this.members);
+
+//   @override
+//   List<Object> get props => [members];
+// }
+
 class MoveCamera extends GeolocationEvent {
   final Point location;
   final double zoom;

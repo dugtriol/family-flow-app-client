@@ -39,53 +39,39 @@ class _GeolocationPageState extends State<GeolocationPage> {
     // Получаем данные выбранного члена семьи из FamilyBloc
     final familyState = context.read<FamilyBloc>().state;
     if (familyState is FamilyLoadSuccess) {
-      print("Выбранный член семьи: $newValue");
-      print("Список членов семьи: ${familyState.members}");
       final selectedMember = familyState.members.firstWhere(
         (member) => member.name == newValue,
-        orElse: () {
-          print("Член семьи с именем $newValue не найден.");
-          return User.empty; // Возвращаем пустого пользователя, если не найден
-        },
+        orElse: () => User.empty,
       );
 
-      if (selectedMember == null) {
-        return; // Прекращаем выполнение, если член семьи не найден
+      if (selectedMember.latitude == null || selectedMember.longitude == null) {
+        // Показываем плашку, если координаты отсутствуют
+        _showLocationError(
+          'У выбранного члена семьи (${selectedMember.name}) отсутствуют данные о местоположении.',
+        );
+        return;
       }
 
-      print(
-        "Выбранный член семьи: ${selectedMember.name} (${selectedMember.latitude}, ${selectedMember.longitude})",
+      // Отправляем событие для перемещения карты к выбранному члену семьи
+      final bloc = context.read<GeolocationBloc>();
+      bloc.add(
+        MoveToLocation(
+          latitude: selectedMember.latitude!,
+          longitude: selectedMember.longitude!,
+        ),
       );
-
-      // Проверяем, есть ли координаты у выбранного члена семьи
-      if (selectedMember.latitude != null && selectedMember.longitude != null) {
-        // Отправляем событие для перемещения карты к выбранному члену семьи
-        final bloc = context.read<GeolocationBloc>();
-        print(
-          "Перемещение к члену семьи: ${selectedMember.name} (${selectedMember.latitude}, ${selectedMember.longitude})",
-        );
-        bloc.add(
-          MoveToLocation(
-            latitude: selectedMember.latitude!,
-            longitude: selectedMember.longitude!,
-          ),
-        );
-      } else {
-        print(
-          "Координаты для ${selectedMember.name} отсутствуют. Перемещение невозможно.",
-        );
-      }
     }
   }
 
-  Future<Position> _determinePosition() async {
+  Future<Position?> _determinePosition() async {
     bool serviceEnabled;
     LocationPermission permission;
 
     // Проверяем, включена ли служба геолокации
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      throw Exception('Location services are disabled.');
+      _showLocationError('Службы геолокации отключены.');
+      return null;
     }
 
     // Проверяем разрешения
@@ -93,16 +79,35 @@ class _GeolocationPageState extends State<GeolocationPage> {
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        throw Exception('Location permissions are denied');
+        _showLocationError('Разрешения на геолокацию отклонены.');
+        return null;
       }
     }
 
     if (permission == LocationPermission.deniedForever) {
-      throw Exception('Location permissions are permanently denied');
+      _showLocationError('Разрешения на геолокацию навсегда отклонены.');
+      return null;
     }
 
     // Получаем текущую позицию
-    return await Geolocator.getCurrentPosition();
+    try {
+      return await Geolocator.getCurrentPosition();
+    } catch (e) {
+      _showLocationError('Не удалось получить данные о местоположении.');
+      return null;
+    }
+  }
+
+  void _showLocationError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: const TextStyle(color: Colors.white)),
+        backgroundColor: Colors.grey[800], // Тёмно-серая плашка
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16), // Отступы от краёв экрана
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+    );
   }
 
   @override
@@ -127,10 +132,13 @@ class _GeolocationPageState extends State<GeolocationPage> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.update_rounded, color: Colors.deepPurple),
+            icon: const Icon(
+              Icons.location_searching,
+              color: Colors.deepPurple,
+            ),
             onPressed: () async {
-              try {
-                final position = await _determinePosition();
+              final position = await _determinePosition();
+              if (position != null) {
                 print(
                   'Текущая позиция: ${position.latitude}, ${position.longitude}',
                 );
@@ -141,8 +149,6 @@ class _GeolocationPageState extends State<GeolocationPage> {
                   ),
                 );
                 context.read<FamilyBloc>().add(FamilyRequested());
-              } catch (e) {
-                print('Ошибка при получении геолокации: $e');
               }
             },
             tooltip: 'Обновить геолокацию',
@@ -162,6 +168,13 @@ class _GeolocationPageState extends State<GeolocationPage> {
                   final familyState = context.read<FamilyBloc>().state;
 
                   if (familyState is FamilyLoadSuccess) {
+                    final members =
+                        familyState.members.where((member) {
+                          return member.latitude != null &&
+                              member.longitude != null;
+                        }).toList();
+
+                    // bloc.add(AddMarker(familyState.members));
                     for (final member in familyState.members) {
                       if (member.latitude != null && member.longitude != null) {
                         print(
@@ -289,121 +302,3 @@ class _GeolocationPageState extends State<GeolocationPage> {
     );
   }
 }
-  // @override
-  // Widget build(BuildContext context) {
-  //   return Scaffold(
-  //     appBar: AppBar(
-  //       backgroundColor: Colors.white,
-  //       elevation: 0,
-  //       title: Row(
-  //         children: [
-  //           const Icon(Icons.location_on, color: Colors.deepPurple, size: 28),
-  //           const SizedBox(width: 8),
-  //           const Text(
-  //             'Геолокация',
-  //             style: TextStyle(
-  //               color: Colors.black87,
-  //               fontSize: 20,
-  //               fontWeight: FontWeight.w600,
-  //             ),
-  //           ),
-  //         ],
-  //       ),
-  //       actions: [
-  //         IconButton(
-  //           icon: const Icon(Icons.refresh, color: Colors.deepPurple),
-  //           onPressed: () {
-  //             final bloc = context.read<GeolocationBloc>();
-  //             bloc.add(RefreshMap()); // Обновляем карту
-  //           },
-  //           tooltip: 'Обновить карту',
-  //         ),
-  //       ],
-  //     ),
-  //     body: Column(
-  //       children: [
-  //         Expanded(
-  //           child: Stack(
-  //             children: [
-  //               BlocBuilder<GeolocationBloc, GeolocationState>(
-  //                 builder: (context, state) {
-  //                   final bloc = context.read<GeolocationBloc>();
-  //                   return YandexMap(
-  //                     onMapCreated: (controller) {
-  //                       bloc.add(MapInitialized(controller));
-
-  //                       // Добавляем маркеры для всех членов семьи
-  //                       for (final member in _familyMembers) {
-  //                         bloc.add(
-  //                           AddMarker(
-  //                             Point(
-  //                               latitude: member['latitude'],
-  //                               longitude: member['longitude'],
-  //                             ),
-  //                           ),
-  //                         );
-  //                       }
-  //                     },
-  //                     mapObjects: state is MapReady ? state.mapObjects : [],
-  //                   );
-  //                 },
-  //               ),
-  //               Positioned(
-  //                 top: 16,
-  //                 left: 16,
-  //                 right: 16,
-  //                 child: DropdownButton<String>(
-  //                   value: _selectedFamilyMember,
-  //                   isExpanded: true,
-  //                   items:
-  //                       _familyMembers.map((member) {
-  //                         return DropdownMenuItem<String>(
-  //                           value: member['name'],
-  //                           child: Text(
-  //                             member['name'],
-  //                             style: const TextStyle(
-  //                               fontSize: 16,
-  //                               fontWeight: FontWeight.w500,
-  //                               color: Colors.black87,
-  //                             ),
-  //                           ),
-  //                         );
-  //                       }).toList(),
-  //                   onChanged: _onFamilyMemberChanged,
-  //                   underline: Container(height: 2, color: Colors.deepPurple),
-  //                 ),
-  //               ),
-  //               Positioned(
-  //                 right: 16,
-  //                 bottom: 100,
-  //                 child: Column(
-  //                   children: [
-  //                     FloatingActionButton(
-  //                       heroTag: 'zoom_in',
-  //                       onPressed: () {
-  //                         final bloc = context.read<GeolocationBloc>();
-  //                         bloc.add(ZoomIn()); // Увеличиваем масштаб
-  //                       },
-  //                       child: const Icon(Icons.add),
-  //                       mini: true,
-  //                     ),
-  //                     const SizedBox(height: 8),
-  //                     FloatingActionButton(
-  //                       heroTag: 'zoom_out',
-  //                       onPressed: () {
-  //                         final bloc = context.read<GeolocationBloc>();
-  //                         bloc.add(ZoomOut()); // Уменьшаем масштаб
-  //                       },
-  //                       child: const Icon(Icons.remove),
-  //                       mini: true,
-  //                     ),
-  //                   ],
-  //                 ),
-  //               ),
-  //             ],
-  //           ),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
