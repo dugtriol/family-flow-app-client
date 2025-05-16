@@ -8,8 +8,14 @@ final class AuthenticationSubscriptionRequested extends AuthenticationEvent {}
 
 final class AuthenticationLogoutPressed extends AuthenticationEvent {}
 
-final class AuthenticationUserRefreshed
-    extends AuthenticationEvent {} // Новое событие
+class AuthenticationUserRefreshed extends AuthenticationEvent {
+  final bool isProfileUpdate;
+
+  const AuthenticationUserRefreshed({this.isProfileUpdate = false});
+
+  @override
+  List<Object?> get props => [isProfileUpdate];
+}
 
 final class AuthenticationProfileUpdateRequested extends AuthenticationEvent {
   final String name;
@@ -18,6 +24,7 @@ final class AuthenticationProfileUpdateRequested extends AuthenticationEvent {
   final String gender;
   final String birthDate;
   final File? avatar;
+  final String avatarUrl;
 
   const AuthenticationProfileUpdateRequested({
     required this.name,
@@ -26,10 +33,19 @@ final class AuthenticationProfileUpdateRequested extends AuthenticationEvent {
     required this.gender,
     required this.birthDate,
     this.avatar,
+    required this.avatarUrl,
   });
 
   @override
-  List<Object?> get props => [name, email, role, gender, birthDate, avatar];
+  List<Object?> get props => [
+    name,
+    email,
+    role,
+    gender,
+    birthDate,
+    avatar,
+    avatarUrl,
+  ];
 }
 
 final class AuthenticationLocationUpdateRequested extends AuthenticationEvent {

@@ -42,34 +42,42 @@ class AuthenticationBloc
   Future<void> _onSubscriptionRequested(
     AuthenticationSubscriptionRequested event,
     Emitter<AuthenticationState> emit,
-  ) {
-    return emit.onEach(
-      _authenticationRepository.status,
-      onData: (status) async {
-        switch (status) {
-          case AuthenticationStatus.unauthenticated:
-            _todoRepository.updateFamilyId(null);
-            _shoppingRepository.updateFamilyId(
-              null,
-            ); // Сбрасываем familyId в ShoppingRepository
-            return emit(const AuthenticationState.unauthenticated());
-          case AuthenticationStatus.authenticated:
-            final user = await _tryGetUser();
-            _todoRepository.updateFamilyId(user?.familyId);
-            _shoppingRepository.updateFamilyId(
-              user?.familyId,
-            ); // Обновляем familyId в ShoppingRepository
-            return emit(
-              user != null
-                  ? AuthenticationState.authenticated(user)
-                  : const AuthenticationState.unauthenticated(),
-            );
-          case AuthenticationStatus.unknown:
-            return emit(const AuthenticationState.unknown());
-        }
-      },
-      onError: addError,
-    );
+  ) async {
+    try {
+      // Проверяем статус аутентификации
+      await emit.onEach(
+        _authenticationRepository.status,
+        onData: (status) async {
+          switch (status) {
+            case AuthenticationStatus.unauthenticated:
+              _todoRepository.updateFamilyId(null);
+              _shoppingRepository.updateFamilyId(null);
+              emit(const AuthenticationState.unauthenticated());
+              break;
+            case AuthenticationStatus.authenticated:
+              final user = await _tryGetUser();
+              if (user != null) {
+                _todoRepository.updateFamilyId(user.familyId);
+                _shoppingRepository.updateFamilyId(user.familyId);
+                emit(AuthenticationState.authenticated(user));
+              } else {
+                // Если токен недействителен, переводим в состояние unauthenticated
+                emit(const AuthenticationState.unauthenticated());
+              }
+              break;
+            case AuthenticationStatus.unknown:
+              emit(const AuthenticationState.unknown());
+              break;
+          }
+        },
+        onError: (error, stackTrace) {
+          // Если произошла ошибка, переводим в состояние unauthenticated
+          emit(const AuthenticationState.unauthenticated());
+        },
+      );
+    } catch (_) {
+      emit(const AuthenticationState.unauthenticated());
+    }
   }
 
   void _onLogoutPressed(
@@ -93,11 +101,12 @@ class AuthenticationBloc
       _shoppingRepository.updateFamilyId(
         user?.familyId,
       ); // Обновляем familyId в ShoppingRepository
-      if (user != null) {
-        emit(AuthenticationState.authenticated(user));
-      } else {
-        emit(const AuthenticationState.unauthenticated());
-      }
+      // if (user != null) {
+      //   // emit(AuthenticationState.authenticated(user));
+      //   emit(AuthenticationState.authenticated(user));
+      // } else {
+      //   emit(const AuthenticationState.unauthenticated());
+      // }
     } catch (_) {
       emit(const AuthenticationState.unauthenticated());
     }
@@ -130,12 +139,20 @@ class AuthenticationBloc
                 event.birthDate != null && event.birthDate.isNotEmpty
                     ? DateTime.parse(event.birthDate)
                     : null,
-            avatar: event.avatar,
+            avatar: event.avatar, // Передаем файл, если он есть
+            avatarURL: event.avatarUrl, // Передаем URL, если файл отсутствует
           ),
         );
         print('Profile updated successfully for user: ${user.id}');
-        _tryGetUser();
-        emit(AuthenticationState.authenticated(user));
+
+        // Обновляем данные пользователя
+        final updatedUser = await _tryGetUser();
+        if (updatedUser != null) {
+          emit(AuthenticationState.authenticated(updatedUser));
+          print('User state updated after profile update');
+        } else {
+          emit(const AuthenticationState.unauthenticated());
+        }
       }
     } catch (e) {
       print('Failed to update profile for user: ${state.user?.id}, error: $e');
