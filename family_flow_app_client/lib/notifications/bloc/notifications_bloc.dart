@@ -17,7 +17,7 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
     : _notificationRepository = notificationRepository,
       super(NotificationsInitial()) {
     on<SaveFcmToken>(_onSaveFcmToken);
-    on<SendLoginNotification>(_onSendLoginNotification);
+    // on<SendLoginNotification>(_onSendLoginNotification);
     on<LoadNotifications>(_onLoadNotifications);
     on<AddNotification>(_onAddNotification);
     on<RespondToInvite>(_onRespondToInvite);
@@ -36,20 +36,20 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
     }
   }
 
-  Future<void> _onSendLoginNotification(
-    SendLoginNotification event,
-    Emitter<NotificationsState> emit,
-  ) async {
-    try {
-      await _notificationRepository.sendNotification(
-        'Пользователь вошел',
-        'Пользователь успешно вошел в приложение.',
-      );
-      print('Уведомление о входе успешно отправлено');
-    } catch (e) {
-      print('Ошибка при отправке уведомления о входе: $e');
-    }
-  }
+  // Future<void> _onSendLoginNotification(
+  //   SendLoginNotification event,
+  //   Emitter<NotificationsState> emit,
+  // ) async {
+  //   try {
+  //     await _notificationRepository.sendNotification(
+  //       'Пользователь вошел',
+  //       'Пользователь успешно вошел в приложение.',
+  //     );
+  //     print('Уведомление о входе успешно отправлено');
+  //   } catch (e) {
+  //     print('Ошибка при отправке уведомления о входе: $e');
+  //   }
+  // }
 
   Future<void> _onLoadNotifications(
     LoadNotifications event,

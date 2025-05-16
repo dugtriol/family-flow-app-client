@@ -222,7 +222,10 @@ class _ChatDetailsPageState extends State<ChatDetailsPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.chatName),
+        title: Text(
+          widget.chatName,
+          style: const TextStyle(color: Colors.white),
+        ),
         backgroundColor: Colors.deepPurple,
       ),
       body: Column(
