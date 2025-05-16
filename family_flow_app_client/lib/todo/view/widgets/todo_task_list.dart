@@ -6,8 +6,13 @@ import 'package:todo_api/todo_api.dart' show TodoItem;
 
 class TodoTaskList extends StatelessWidget {
   final List<TodoItem> tasks;
+  final String currentUserId;
 
-  const TodoTaskList({super.key, required this.tasks});
+  const TodoTaskList({
+    super.key,
+    required this.tasks,
+    required this.currentUserId,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +37,10 @@ class TodoTaskList extends StatelessWidget {
                 builder:
                     (_) => BlocProvider.value(
                       value: context.read<TodoBloc>(),
-                      child: TodoDetailsDialog(todo: todo),
+                      child: TodoDetailsDialog(
+                        todo: todo,
+                        currentUserId: currentUserId,
+                      ),
                     ),
               ),
             );

@@ -34,7 +34,7 @@ class TodoUpdateCompleteRequested extends TodoEvent {
     required this.id,
     required this.title,
     required this.description,
-    required this.status,
+    // required this.status,
     required this.deadline,
     required this.assignedTo,
     required this.point,
@@ -43,7 +43,7 @@ class TodoUpdateCompleteRequested extends TodoEvent {
   final String id;
   final String title;
   final String description;
-  final String status;
+  // final String status;
   final DateTime deadline;
   final String assignedTo;
   final int point;
@@ -53,7 +53,7 @@ class TodoUpdateCompleteRequested extends TodoEvent {
     id,
     title,
     description,
-    status,
+    // status,
     deadline,
     assignedTo,
     point,

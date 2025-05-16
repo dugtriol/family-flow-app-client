@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:family_flow_app_client/app/view/notification_service.dart';
 import 'package:todo_api/todo_api.dart';
 import 'package:todo_repository/todo_repository.dart';
 
@@ -75,6 +76,9 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     Emitter<TodoState> emit,
   ) async {
     try {
+      print(
+        'Обработка события TodoUpdateCompleteRequested для задачи: ${event.title}',
+      );
       emit(TodoLoading());
       await _todoRepository.updateTodo(
         id: event.id,
@@ -84,6 +88,13 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
         assignedTo: event.assignedTo,
         deadline: event.deadline,
         point: event.point,
+      );
+
+      print('Задача "${event.title}" успешно завершена!'); // Отладочный вывод
+      await NotificationService().showNotification(
+        id: event.id.hashCode,
+        title: 'Задача завершена',
+        body: 'Задача "${event.title}" успешно завершена!',
       );
       // Обновляем список задач
       await _onAssignedToRequested(TodoAssignedToRequested(), emit);

@@ -8,6 +8,7 @@ import '../bloc/todo_bloc.dart';
 import 'widgets/todo_list_views.dart';
 import 'widgets/create_todo_button.dart';
 import 'widgets/todo_calendar_page.dart';
+import 'package:notification_api/models/notification.dart' as NotificationApi;
 
 class TodoPage extends StatelessWidget {
   const TodoPage({super.key});
@@ -30,7 +31,8 @@ class _TodoViewState extends State<TodoView> {
   bool _isCalendarVisible = false; // Флаг для отображения календаря
   Map<DateTime, List<String>> _events = {}; // События на календаре
   Map<DateTime, List<TodoItem>> _tasksByDate = {};
-  List<String> _notifications = [];
+  bool _hasNewNotifications = false; // Флаг для новых уведомлений
+  // List<Map<String, dynamic>> _notifications = [];
 
   @override
   void initState() {
@@ -42,6 +44,7 @@ class _TodoViewState extends State<TodoView> {
     }
     _requestNotificationPermission();
     _configureFCM();
+    context.read<NotificationsBloc>().add(LoadNotifications());
   }
 
   Future<void> _requestNotificationPermission() async {
@@ -67,11 +70,30 @@ class _TodoViewState extends State<TodoView> {
     String? token = await messaging.getToken();
     print('FCM Token: $token');
 
+    if (token != null) {
+      // Отправляем токен через NotificationsBloc
+      context.read<NotificationsBloc>().add(SaveFcmToken(token));
+    }
+
     // Обработка входящих уведомлений
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       print('Получено уведомление: ${message.notification?.title}');
+      final notification = NotificationApi.Notification(
+        id: message.messageId ?? '',
+        userId: message.data['user_id'] ?? '',
+        title: message.notification?.title ?? 'Без заголовка',
+        body: message.notification?.body ?? 'Нет описания',
+        data: message.data.toString(),
+        isRead: false,
+        createdAt: DateTime.now(),
+      );
+
+      // Добавляем уведомление в Bloc
+      context.read<NotificationsBloc>().add(AddNotification(notification));
+
+      // Устанавливаем флаг для новых уведомлений
       setState(() {
-        _notifications.add(message.notification?.title ?? 'Без заголовка');
+        _hasNewNotifications = true;
       });
     });
   }
@@ -105,14 +127,101 @@ class _TodoViewState extends State<TodoView> {
           ],
         ),
         actions: [
+          // IconButton(
+          //   icon: const Icon(Icons.notifications, color: Colors.deepPurple),
+          //   onPressed: () {
+          //     Navigator.of(context).push(
+          //       MaterialPageRoute(
+          //         builder:
+          //             (context) =>
+          //                 BlocBuilder<NotificationsBloc, NotificationsState>(
+          //                   builder: (context, state) {
+          //                     if (state is NotificationsLoading) {
+          //                       return const Center(
+          //                         child: CircularProgressIndicator(),
+          //                       );
+          //                     } else if (state is NotificationsLoadSuccess) {
+          //                       return NotificationsPage(
+          //                         notifications: state.notifications,
+          //                       );
+          //                     } else if (state is NotificationsLoadFailure) {
+          //                       return const Center(
+          //                         child: Text(
+          //                           'Ошибка при загрузке уведомлений',
+          //                           style: TextStyle(color: Colors.red),
+          //                         ),
+          //                       );
+          //                     }
+          //                     return const Center(
+          //                       child: Text('Нет уведомлений'),
+          //                     );
+          //                   },
+          //                 ),
+          //       ),
+          //     );
+          //   },
+          // ),
           IconButton(
-            icon: const Icon(Icons.notifications, color: Colors.deepPurple),
+            icon: Stack(
+              children: [
+                const Icon(Icons.notifications, color: Colors.deepPurple),
+                if (_hasNewNotifications)
+                  Positioned(
+                    right: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(80),
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 6,
+                        minHeight: 6,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
                   builder:
-                      (context) =>
-                          NotificationsPage(notifications: _notifications),
+                      (
+                        context,
+                      ) => BlocListener<NotificationsBloc, NotificationsState>(
+                        listener: (context, state) {
+                          if (state is NotificationsLoadSuccess) {
+                            // Сбрасываем флаг новых уведомлений
+                            setState(() {
+                              _hasNewNotifications = false;
+                            });
+                          }
+                        },
+                        child:
+                            BlocBuilder<NotificationsBloc, NotificationsState>(
+                              builder: (context, state) {
+                                if (state is NotificationsLoading) {
+                                  return const Center(
+                                    child: CircularProgressIndicator(),
+                                  );
+                                } else if (state is NotificationsLoadSuccess) {
+                                  return NotificationsPage(
+                                    notifications: state.notifications,
+                                  );
+                                } else if (state is NotificationsLoadFailure) {
+                                  return const Center(
+                                    child: Text(
+                                      'Ошибка при загрузке уведомлений',
+                                      style: TextStyle(color: Colors.red),
+                                    ),
+                                  );
+                                }
+                                return const Center(
+                                  child: Text('Нет уведомлений'),
+                                );
+                              },
+                            ),
+                      ),
                 ),
               );
             },
@@ -199,6 +308,7 @@ class _TodoViewState extends State<TodoView> {
                         ? TodoCalendarPage(
                           events: _events,
                           tasksByDate: _tasksByDate,
+                          currentUserId: currentUserId,
                         )
                         : (_selectedView == 'Назначенные мне'
                             ? const AssignedToListView()
@@ -219,7 +329,7 @@ class _TodoViewState extends State<TodoView> {
     final Map<DateTime, List<TodoItem>> tasksByDate = {};
 
     for (final todo in todos) {
-      final deadline = todo.deadline;
+      final deadline = todo.deadline.toLocal();
       if (deadline != null) {
         final date = DateTime(deadline.year, deadline.month, deadline.day);
 

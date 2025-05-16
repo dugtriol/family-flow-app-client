@@ -6,11 +6,13 @@ import 'todo_task_list.dart';
 class TodoCalendarPage extends StatefulWidget {
   final Map<DateTime, List<String>> events;
   final Map<DateTime, List<TodoItem>> tasksByDate;
+  final String currentUserId;
 
   const TodoCalendarPage({
     super.key,
     required this.events,
     required this.tasksByDate,
+    required this.currentUserId,
   });
 
   @override
@@ -50,7 +52,7 @@ class _TodoCalendarPageState extends State<TodoCalendarPage> {
           },
           eventLoader: (day) {
             final normalizedDay = DateTime(day.year, day.month, day.day);
-            return widget.events[normalizedDay] ?? [];
+            return widget.events[normalizedDay.toLocal()] ?? [];
           },
           calendarStyle: const CalendarStyle(
             todayDecoration: BoxDecoration(
@@ -92,6 +94,9 @@ class _TodoCalendarPageState extends State<TodoCalendarPage> {
             ? (widget.tasksByDate[normalizedDay] ?? <TodoItem>[])
             : <TodoItem>[];
 
-    return TodoTaskList(tasks: tasks);
+    return TodoTaskList(
+      tasks: tasks,
+      currentUserId: widget.currentUserId,
+    ); // Замените '' на актуальный ID пользователя
   }
 }

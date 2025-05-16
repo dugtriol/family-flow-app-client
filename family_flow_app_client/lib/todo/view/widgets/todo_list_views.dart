@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../authentication/authentication.dart' show AuthenticationBloc;
 import '../../bloc/todo_bloc.dart';
 import 'todo_detail_dialog.dart';
 
@@ -21,49 +22,61 @@ class AssignedToListView extends StatelessWidget {
             itemBuilder: (context, index) {
               final todo = state.todos[index];
 
-              return GestureDetector(
-                onTap: () {
-                  // Открываем диалог с подробной информацией
-                  showDialog(
-                    context: context,
-                    builder: (dialogContext) {
-                      return BlocProvider.value(
-                        value: context.read<TodoBloc>(),
-                        child: TodoDetailsDialog(todo: todo),
+              return Builder(
+                builder: (context) {
+                  final currentUserId = context.select(
+                    (AuthenticationBloc bloc) => bloc.state.user.id,
+                  );
+                  return GestureDetector(
+                    onTap: () {
+                      // Открываем диалог с подробной информацией
+                      showDialog(
+                        context: context,
+                        builder: (dialogContext) {
+                          return BlocProvider.value(
+                            value: context.read<TodoBloc>(),
+                            child: TodoDetailsDialog(
+                              todo: todo,
+                              currentUserId: currentUserId,
+                            ),
+                          );
+                        },
                       );
                     },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                        ),
+                        leading: Icon(
+                          todo.status.toLowerCase() == 'completed'
+                              ? Icons.check_circle
+                              : Icons.radio_button_unchecked,
+                          color:
+                              todo.status.toLowerCase() == 'completed'
+                                  ? Colors.green
+                                  : Colors.blue,
+                          size: 24, // Уменьшенный размер иконки
+                        ),
+                        title: Text(
+                          todo.title,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14, // Уменьшенный размер текста
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        trailing: const Icon(
+                          Icons.arrow_forward_ios,
+                          color: Colors.deepPurple,
+                          size: 14, // Уменьшенный размер иконки
+                        ),
+                      ),
+                    ),
                   );
                 },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                    leading: Icon(
-                      todo.status.toLowerCase() == 'completed'
-                          ? Icons.check_circle
-                          : Icons.radio_button_unchecked,
-                      color:
-                          todo.status.toLowerCase() == 'completed'
-                              ? Colors.green
-                              : Colors.blue,
-                      size: 24, // Уменьшенный размер иконки
-                    ),
-                    title: Text(
-                      todo.title,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: 14, // Уменьшенный размер текста
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    trailing: const Icon(
-                      Icons.arrow_forward_ios,
-                      color: Colors.deepPurple,
-                      size: 14, // Уменьшенный размер иконки
-                    ),
-                  ),
-                ),
               );
             },
           );
@@ -94,49 +107,61 @@ class CreatedByListView extends StatelessWidget {
             itemBuilder: (context, index) {
               final todo = state.todos[index];
 
-              return GestureDetector(
-                onTap: () {
-                  // Открываем диалог с подробной информацией
-                  showDialog(
-                    context: context,
-                    builder: (dialogContext) {
-                      return BlocProvider.value(
-                        value: context.read<TodoBloc>(),
-                        child: TodoDetailsDialog(todo: todo),
+              return Builder(
+                builder: (context) {
+                  final currentUserId = context.select(
+                    (AuthenticationBloc bloc) => bloc.state.user.id,
+                  );
+                  return GestureDetector(
+                    onTap: () {
+                      // Открываем диалог с подробной информацией
+                      showDialog(
+                        context: context,
+                        builder: (dialogContext) {
+                          return BlocProvider.value(
+                            value: context.read<TodoBloc>(),
+                            child: TodoDetailsDialog(
+                              todo: todo,
+                              currentUserId: currentUserId,
+                            ),
+                          );
+                        },
                       );
                     },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                        ),
+                        leading: Icon(
+                          todo.status.toLowerCase() == 'completed'
+                              ? Icons.check_circle
+                              : Icons.radio_button_unchecked,
+                          color:
+                              todo.status.toLowerCase() == 'completed'
+                                  ? Colors.green
+                                  : Colors.blue,
+                          size: 24, // Уменьшенный размер иконки
+                        ),
+                        title: Text(
+                          todo.title,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14, // Уменьшенный размер текста
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        trailing: const Icon(
+                          Icons.arrow_forward_ios,
+                          color: Colors.deepPurple,
+                          size: 14, // Уменьшенный размер иконки
+                        ),
+                      ),
+                    ),
                   );
                 },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                    leading: Icon(
-                      todo.status.toLowerCase() == 'completed'
-                          ? Icons.check_circle
-                          : Icons.radio_button_unchecked,
-                      color:
-                          todo.status.toLowerCase() == 'completed'
-                              ? Colors.green
-                              : Colors.blue,
-                      size: 24, // Уменьшенный размер иконки
-                    ),
-                    title: Text(
-                      todo.title,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: 14, // Уменьшенный размер текста
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    trailing: const Icon(
-                      Icons.arrow_forward_ios,
-                      color: Colors.deepPurple,
-                      size: 14, // Уменьшенный размер иконки
-                    ),
-                  ),
-                ),
               );
             },
           );
