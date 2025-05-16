@@ -10,7 +10,7 @@ abstract class DiaryState extends Equatable {
 class DiaryLoading extends DiaryState {}
 
 class DiaryLoadSuccess extends DiaryState {
-  final List<DiaryEntry> entries;
+  final List<DiaryItem> entries;
 
   const DiaryLoadSuccess({required this.entries});
 
@@ -25,11 +25,4 @@ class DiaryLoadFailure extends DiaryState {
 
   @override
   List<Object> get props => [error];
-}
-
-class DiaryEntry {
-  final String title;
-  final String content;
-
-  const DiaryEntry({required this.title, required this.content});
 }
