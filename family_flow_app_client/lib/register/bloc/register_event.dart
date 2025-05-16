@@ -53,3 +53,12 @@ class RegisterSubmitted extends RegisterEvent {
   @override
   List<Object?> get props => [context];
 }
+
+class RegisterRoleChanged extends RegisterEvent {
+  const RegisterRoleChanged(this.isParent);
+
+  final bool isParent;
+
+  @override
+  List<Object> get props => [isParent];
+}

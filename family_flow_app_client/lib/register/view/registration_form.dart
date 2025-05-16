@@ -22,10 +22,11 @@ class RegistrationForm extends StatelessWidget {
         } else if (state.isCodeSent) {
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (_) => BlocProvider.value(
-                value: context.read<RegisterBloc>(),
-                child: const VerificationPage(),
-              ),
+              builder:
+                  (_) => BlocProvider.value(
+                    value: context.read<RegisterBloc>(),
+                    child: const VerificationPage(),
+                  ),
             ),
           );
         }
@@ -40,6 +41,8 @@ class RegistrationForm extends StatelessWidget {
             _EmailInput(),
             const Padding(padding: EdgeInsets.all(12)),
             _PasswordInput(),
+            const Padding(padding: EdgeInsets.all(12)),
+            _RoleSwitch(),
             const Padding(padding: EdgeInsets.all(12)),
             _RegisterButton(),
           ],
@@ -57,9 +60,7 @@ class _NameInput extends StatelessWidget {
       onChanged: (name) {
         context.read<RegisterBloc>().add(RegisterNameChanged(name));
       },
-      decoration: const InputDecoration(
-        labelText: 'Имя',
-      ),
+      decoration: const InputDecoration(labelText: 'Имя'),
     );
   }
 }
@@ -72,9 +73,7 @@ class _EmailInput extends StatelessWidget {
       onChanged: (email) {
         context.read<RegisterBloc>().add(RegisterEmailChanged(email));
       },
-      decoration: const InputDecoration(
-        labelText: 'Email',
-      ),
+      decoration: const InputDecoration(labelText: 'Email'),
     );
   }
 }
@@ -88,9 +87,7 @@ class _PasswordInput extends StatelessWidget {
         context.read<RegisterBloc>().add(RegisterPasswordChanged(password));
       },
       obscureText: true,
-      decoration: const InputDecoration(
-        labelText: 'Пароль',
-      ),
+      decoration: const InputDecoration(labelText: 'Пароль'),
     );
   }
 }
@@ -108,10 +105,32 @@ class _RegisterButton extends StatelessWidget {
 
     return ElevatedButton(
       key: const Key('registerForm_continue_raisedButton'),
-      onPressed: isValid
-          ? () => context.read<RegisterBloc>().add(RegisterSendCode())
-          : null,
+      onPressed:
+          isValid
+              ? () => context.read<RegisterBloc>().add(RegisterSendCode())
+              : null,
       child: const Text('Зарегистрироваться'),
+    );
+  }
+}
+
+class _RoleSwitch extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final isParent = context.select((RegisterBloc bloc) => bloc.state.isParent);
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Switch(
+          value: isParent,
+          onChanged: (value) {
+            context.read<RegisterBloc>().add(RegisterRoleChanged(value));
+          },
+        ),
+        const SizedBox(width: 8),
+        const Text('Вы родитель?'),
+      ],
     );
   }
 }

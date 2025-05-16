@@ -10,6 +10,7 @@ class RegisterState extends Equatable {
     this.isCodeSent = false,
     this.isCodeVerified = false,
     this.isRegistered = false, // Новый флаг
+    this.isParent = true, // По умолчанию родитель
   });
 
   final FormzSubmissionStatus status;
@@ -20,6 +21,7 @@ class RegisterState extends Equatable {
   final bool isCodeSent;
   final bool isCodeVerified;
   final bool isRegistered; // Новый флаг
+  final bool isParent; // По умолчанию родитель
 
   RegisterState copyWith({
     FormzSubmissionStatus? status,
@@ -30,6 +32,7 @@ class RegisterState extends Equatable {
     bool? isCodeSent,
     bool? isCodeVerified,
     bool? isRegistered, // Новый флаг
+    bool? isParent, // По умолчанию родитель
   }) {
     return RegisterState(
       status: status ?? this.status,
@@ -40,18 +43,20 @@ class RegisterState extends Equatable {
       isCodeSent: isCodeSent ?? this.isCodeSent,
       isCodeVerified: isCodeVerified ?? this.isCodeVerified,
       isRegistered: isRegistered ?? this.isRegistered, // Новый флаг
+      isParent: isParent ?? this.isParent, // По умолчанию родитель
     );
   }
 
   @override
   List<Object> get props => [
-        status,
-        name,
-        email,
-        password,
-        isValid,
-        isCodeSent,
-        isCodeVerified,
-        isRegistered
-      ];
+    status,
+    name,
+    email,
+    password,
+    isValid,
+    isCodeSent,
+    isCodeVerified,
+    isRegistered,
+    isParent,
+  ];
 }

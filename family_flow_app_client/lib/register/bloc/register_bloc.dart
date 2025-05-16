@@ -1,6 +1,8 @@
 import 'package:authentication_repository/authentication_repository.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:family_flow_app_client/app/view/notification_service.dart'
+    show NotificationService;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:formz/formz.dart';
@@ -13,22 +15,20 @@ part 'register_state.dart';
 
 class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
   RegisterBloc({required AuthenticationRepository authenticationRepository})
-      : _authenticationRepository = authenticationRepository,
-        super(const RegisterState()) {
+    : _authenticationRepository = authenticationRepository,
+      super(const RegisterState()) {
     on<RegisterNameChanged>(_onNameChanged);
     on<RegisterEmailChanged>(_onEmailChanged);
     on<RegisterPasswordChanged>(_onPasswordChanged);
     on<RegisterSendCode>(_onSendCode);
     on<RegisterVerifyCode>(_onVerifyCode);
     on<RegisterSubmitted>(_onSubmitted);
+    on<RegisterRoleChanged>(_onRoleChanged);
   }
 
   final AuthenticationRepository _authenticationRepository;
 
-  void _onNameChanged(
-    RegisterNameChanged event,
-    Emitter<RegisterState> emit,
-  ) {
+  void _onNameChanged(RegisterNameChanged event, Emitter<RegisterState> emit) {
     final name = Name.dirty(event.name);
     emit(
       state.copyWith(
@@ -71,10 +71,9 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
     emit(state.copyWith(status: FormzSubmissionStatus.inProgress));
     try {
       await _authenticationRepository.sendVerificationCode(state.email.value);
-      emit(state.copyWith(
-        status: FormzSubmissionStatus.success,
-        isCodeSent: true,
-      ));
+      emit(
+        state.copyWith(status: FormzSubmissionStatus.success, isCodeSent: true),
+      );
     } catch (_) {
       emit(state.copyWith(status: FormzSubmissionStatus.failure));
     }
@@ -91,10 +90,12 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
         event.code,
       );
       if (isValid) {
-        emit(state.copyWith(
-          status: FormzSubmissionStatus.success,
-          isCodeVerified: true,
-        ));
+        emit(
+          state.copyWith(
+            status: FormzSubmissionStatus.success,
+            isCodeVerified: true,
+          ),
+        );
       } else {
         emit(state.copyWith(status: FormzSubmissionStatus.failure));
       }
@@ -114,20 +115,31 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
           name: state.name.value,
           email: state.email.value,
           password: state.password.value,
-          role: 'Parent',
+          role: state.isParent ? 'Parent' : 'Child',
         );
 
         // После успешного входа или регистрации
-        emit(state.copyWith(
-          status: FormzSubmissionStatus.success,
-          isRegistered: true,
-        ));
-        event.context
-            .read<AuthenticationBloc>()
-            .add(AuthenticationUserRefreshed());
+        emit(
+          state.copyWith(
+            status: FormzSubmissionStatus.success,
+            isRegistered: true,
+          ),
+        );
+        event.context.read<AuthenticationBloc>().add(
+          AuthenticationUserRefreshed(),
+        );
+        await NotificationService().showNotification(
+          id: 1,
+          title: 'Family Flow',
+          body: 'Добро пожаловать в Family Flow!',
+        );
       } catch (_) {
         emit(state.copyWith(status: FormzSubmissionStatus.failure));
       }
     }
+  }
+
+  void _onRoleChanged(RegisterRoleChanged event, Emitter<RegisterState> emit) {
+    emit(state.copyWith(isParent: event.isParent));
   }
 }
