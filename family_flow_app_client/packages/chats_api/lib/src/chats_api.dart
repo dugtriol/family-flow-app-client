@@ -9,13 +9,17 @@ import '../models/create_chat_input.dart';
 import '../models/add_participant_input.dart';
 
 class ChatsApi {
-  static const _baseUrl = 'http://10.0.2.2:8080/api';
+  // static const _baseUrl = 'http://10.0.2.2:8080/api';
+  // static const _baseUrl = 'http://family-flow-app-aigul.amvera.io/api';
+  static const _baseUrl = 'http://family-flow-app-1-aigul.amvera.io/api';
+  static const _websocketUrl = 'ws://family-flow-app-1-aigul.amvera.io:80/ws';
+  // static const _websocketUrl = 'ws://10.0.2.2:8080/ws';
   final WebSocketChannel _channel;
   final http.Client _httpClient;
 
   ChatsApi({http.Client? httpClient})
     : _httpClient = httpClient ?? http.Client(),
-      _channel = WebSocketChannel.connect(Uri.parse('ws://10.0.2.2:8080/ws'));
+      _channel = WebSocketChannel.connect(Uri.parse(_websocketUrl));
 
   /// Подписка на входящие сообщения через WebSocket
   Stream<WebSocketResponse> get messages => _channel.stream.map((message) {

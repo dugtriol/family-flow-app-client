@@ -16,6 +16,7 @@ class Notification extends Equatable {
   final bool isRead;
   @JsonKey(name: 'created_at')
   final DateTime createdAt;
+  final bool hasResponded;
 
   Notification({
     required this.id,
@@ -25,7 +26,30 @@ class Notification extends Equatable {
     required this.data,
     required this.isRead,
     required this.createdAt,
+    this.hasResponded = false,
   });
+
+  Notification copyWith({
+    String? id,
+    String? userId,
+    String? title,
+    String? body,
+    String? data,
+    bool? isRead,
+    DateTime? createdAt,
+    bool? hasResponded,
+  }) {
+    return Notification(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      title: title ?? this.title,
+      body: body ?? this.body,
+      data: data ?? this.data,
+      isRead: isRead ?? this.isRead,
+      createdAt: createdAt ?? this.createdAt,
+      hasResponded: hasResponded ?? this.hasResponded,
+    );
+  }
 
   factory Notification.fromJson(Map<String, dynamic> json) =>
       _$NotificationFromJson(json);
@@ -33,5 +57,14 @@ class Notification extends Equatable {
   Map<String, dynamic> toJson() => _$NotificationToJson(this);
 
   @override
-  List<Object?> get props => [id, userId, title, body, data, isRead, createdAt];
+  List<Object?> get props => [
+    id,
+    userId,
+    title,
+    body,
+    data,
+    isRead,
+    createdAt,
+    hasResponded,
+  ];
 }
