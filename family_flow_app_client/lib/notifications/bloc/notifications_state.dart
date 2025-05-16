@@ -28,3 +28,14 @@ class NotificationsError extends NotificationsState {
   @override
   List<Object> get props => [message];
 }
+
+class NotificationsLoadSuccess extends NotificationsState {
+  final List<Notification> notifications;
+
+  const NotificationsLoadSuccess(this.notifications);
+
+  @override
+  List<Object> get props => [notifications];
+}
+
+class NotificationsLoadFailure extends NotificationsState {}
