@@ -8,3 +8,4 @@ export 'input_create_reward.dart';
 export 'reward.dart';
 export 'reward_redemption.dart';
 export 'input_update_photo.dart';
+export 'input_update_reward.dart';

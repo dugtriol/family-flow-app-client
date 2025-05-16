@@ -10,7 +10,9 @@ class FamilyApiClient {
   FamilyApiClient({http.Client? httpClient})
     : _httpClient = httpClient ?? http.Client();
 
-  static const _baseUrl = 'http://10.0.2.2:8080/api';
+  // static const _baseUrl = 'http://10.0.2.2:8080/api';
+  // static const _baseUrl = 'http://family-flow-app-aigul.amvera.io/api';
+  static const _baseUrl = 'http://family-flow-app-1-aigul.amvera.io/api';
   final http.Client _httpClient;
 
   /// Метод для создания семьи
@@ -303,7 +305,8 @@ class FamilyApiClient {
     String userId,
     String token,
   ) async {
-    final uri = Uri.parse('$_baseUrl/rewards/redemptions?user_id=$userId');
+    // final uri = Uri.parse('$_baseUrl/rewards/redemptions?user_id=$userId');
+    final uri = Uri.parse('$_baseUrl/rewards/redemptions');
 
     final response = await _httpClient.get(
       uri,
@@ -312,22 +315,46 @@ class FamilyApiClient {
         'Authorization': 'Bearer $token',
       },
     );
-
+    print('getRedemptionsByUserID - Response body: ${response.body}');
     if (response.statusCode != 200) {
+      print('getRedemptionsByUserID - Response body: ${response.body}');
+      print(
+        'getRedemptionsByUserID - Response status code: ${response.statusCode}',
+      );
       throw Exception('Failed to get redemptions: ${response.body}');
     }
 
+    print(
+      'getRedemptionsByUserID - response.body.isEmpty: ${response.body.isEmpty}',
+    );
+    print(
+      'getRedemptionsByUserID - response.body == null: ${response.body == 'null'}',
+    );
+    print(
+      'getRedemptionsByUserID - response.body is List: ${response.body is! List}',
+    );
+
+    // || response.body is! List
     if (response.body.isEmpty || response.body == 'null') {
+      print(
+        'getRedemptionsByUserID - API вернул null или некорректный формат. Возвращаем пустой список.',
+      );
       return []; // Возвращаем пустой список, если данных нет
     }
 
-    final responseData = jsonDecode(response.body) as List<dynamic>;
-    return responseData
-        .map(
-          (redemptionJson) =>
-              RewardRedemption.fromJson(redemptionJson as Map<String, dynamic>),
-        )
-        .toList();
+    // final responseBody = jsonDecode(utf8.decode(response.bodyBytes)) as List;
+    // final responseData = jsonDecode(responseBody) as List<dynamic>;
+    // final wishlistItems =
+    //     responseBody.map((json) => WishlistItem.fromJson(json)).toList();
+    try {
+      final responseBody = jsonDecode(utf8.decode(response.bodyBytes)) as List;
+      return responseBody
+          .map((redemptionJson) => RewardRedemption.fromJson(redemptionJson))
+          .toList();
+    } catch (e) {
+      print('Failed to parse redemptions: $e');
+      return []; // Возвращаем пустой список в случае ошибки парсинга
+    }
   }
 
   Future<void> updateFamilyPhoto(InputUpdatePhoto input, String token) async {
@@ -357,6 +384,98 @@ class FamilyApiClient {
         'Failed to update family photo: ${response.reasonPhrase}',
       );
     }
+  }
+
+  Future<void> updateReward(
+    RewardUpdateInput input,
+    String rewardId,
+    String token,
+  ) async {
+    print('updateReward called with input: ${input.toJson()}');
+    final uri = Uri.parse('$_baseUrl/rewards/$rewardId');
+    final jsonBody = jsonEncode(input.toJson());
+
+    final response = await _httpClient.put(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonBody,
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update reward: ${response.body}');
+    }
+  }
+
+  Future<List<RewardRedemption>> getRedemptionsByUserIDParam(
+    String userId,
+    String token,
+  ) async {
+    final uri = Uri.parse('$_baseUrl/rewards/redemptions/$userId');
+
+    final response = await _httpClient.get(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+    print('getRedemptionsByUserIDParam - Response body: ${response.body}');
+    if (response.statusCode != 200) {
+      print('getRedemptionsByUserIDParam - Response body: ${response.body}');
+      print(
+        'getRedemptionsByUserIDParam - Response status code: ${response.statusCode}',
+      );
+      throw Exception('Failed to get redemptions: ${response.body}');
+    }
+
+    print(
+      'getRedemptionsByUserIDParam - response.body.isEmpty: ${response.body.isEmpty}',
+    );
+    print(
+      'getRedemptionsByUserIDParam - response.body == null: ${response.body == 'null'}',
+    );
+    print(
+      'getRedemptionsByUserIDParam - response.body is List: ${response.body is! List}',
+    );
+
+    if (response.body.isEmpty || response.body == 'null') {
+      print(
+        'getRedemptionsByUserIDParam - API returned null or invalid format. Returning an empty list.',
+      );
+      return [];
+    }
+
+    try {
+      final responseBody = jsonDecode(utf8.decode(response.bodyBytes)) as List;
+      return responseBody
+          .map((redemptionJson) => RewardRedemption.fromJson(redemptionJson))
+          .toList();
+    } catch (e) {
+      print('Failed to parse redemptions: $e');
+      return [];
+    }
+  }
+
+  /// Удаление награды
+  Future<void> deleteReward(String rewardId, String token) async {
+    final uri = Uri.parse('$_baseUrl/rewards/$rewardId');
+
+    final response = await _httpClient.delete(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to delete reward: ${response.body}');
+    }
+
+    print('Reward deleted successfully: $rewardId');
   }
 
   void close() {

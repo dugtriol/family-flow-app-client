@@ -232,5 +232,54 @@ class FamilyRepository {
     await _familyApiClient.updateFamilyPhoto(input, token);
   }
 
+  Future<void> updateReward(RewardUpdateInput input, String rewardId) async {
+    try {
+      final token = await _getJwtToken();
+      if (token == null) {
+        throw Exception('JWT token is missing');
+      }
+
+      await _familyApiClient.updateReward(input, rewardId, token);
+    } catch (e) {
+      print('Failed to update reward: $e');
+      throw Exception('Failed to update reward');
+    }
+  }
+
+  Future<List<RewardRedemption>> getRedemptionsByUserIDParam(
+    String userId,
+  ) async {
+    print(
+      'FamilyRepository - getRedemptionsByUserIDParam – Getting redemptions for userId: $userId',
+    );
+    try {
+      final token = await _getJwtToken();
+      if (token == null) {
+        throw Exception('JWT token is missing');
+      }
+
+      return await _familyApiClient.getRedemptionsByUserIDParam(userId, token);
+    } catch (e) {
+      print('Failed to get redemptions: $e');
+      throw Exception('Failed to get redemptions');
+    }
+  }
+
+  /// Удаление награды
+  Future<void> deleteReward(String rewardId) async {
+    try {
+      final token = await _getJwtToken();
+      if (token == null) {
+        throw Exception('JWT token is missing');
+      }
+
+      await _familyApiClient.deleteReward(rewardId, token);
+      print('FamilyRepository - Reward deleted: $rewardId');
+    } catch (e) {
+      print('FamilyRepository - Failed to delete reward: $e');
+      throw Exception('Failed to delete reward');
+    }
+  }
+
   void dispose() => _controller.close();
 }
