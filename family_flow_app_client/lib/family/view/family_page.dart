@@ -1,3 +1,4 @@
+import 'package:family_flow_app_client/authentication/authentication.dart';
 import 'package:family_flow_app_client/family/view/rewards_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -17,17 +18,53 @@ class FamilyPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Семья'),
+        title: const Text(
+          'Семья',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color:
+                Colors
+                    .black, // Цвет текста (можно изменить под тему приложения)
+          ),
+        ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.card_giftcard),
-            tooltip: 'Вознаграждения',
-            onPressed: () {
-              Navigator.of(
-                context,
-              ).push(MaterialPageRoute(builder: (context) => RewardsPage()));
+          BlocBuilder<FamilyBloc, FamilyState>(
+            builder: (context, state) {
+              if (state is FamilyLoadSuccess) {
+                // Показываем кнопку только если пользователь состоит в семье
+                return InkWell(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => RewardsPage()),
+                    );
+                  },
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.card_giftcard,
+                        color: Colors.black, // Цвет иконки
+                      ),
+                      const SizedBox(
+                        width: 8,
+                      ), // Отступ между иконкой и текстом
+                      const Text(
+                        'Вознаграждения',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black, // Цвет текста
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+              // Если пользователь не состоит в семье, не показываем кнопку
+              return const SizedBox.shrink();
             },
           ),
+          const SizedBox(width: 16),
         ],
       ),
       body: RefreshIndicator(
@@ -51,15 +88,15 @@ class FamilyPage extends StatelessWidget {
                       },
                       child: const Text('Создать семью'),
                     ),
-                    ElevatedButton(
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (context) => const JoinFamilyDialog(),
-                        );
-                      },
-                      child: const Text('Присоединиться к семье'),
-                    ),
+                    // ElevatedButton(
+                    //   onPressed: () {
+                    //     showDialog(
+                    //       context: context,
+                    //       builder: (context) => const JoinFamilyDialog(),
+                    //     );
+                    //   },
+                    //   child: const Text('Присоединиться к семье'),
+                    // ),
                   ],
                 ),
               );
@@ -133,175 +170,111 @@ class FamilyPage extends StatelessWidget {
                 ],
               );
             } else if (state is FamilyLoadFailure) {
-              return Center(child: Text('Ошибка: ${state.error}'));
+              return const Center(
+                child: Text(
+                  'Что-то пошло не так. Перезагрузите приложение.',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey, // Красный цвет для выделения ошибки
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              );
             }
             return const SizedBox.shrink();
           },
         ),
       ),
-      floatingActionButton: PopupMenuButton<String>(
-        icon: const Icon(Icons.person_add, size: 28),
-        tooltip: 'Действия с участниками',
-        onSelected: (value) {
-          if (value == 'add_member') {
-            showDialog(
-              context: context,
-              builder: (context) => const AddMemberDialog(),
-            );
-          } else if (value == 'invite_member') {
-            showDialog(
-              context: context,
-              builder: (context) => const InviteMemberDialog(),
+      floatingActionButton: BlocBuilder<FamilyBloc, FamilyState>(
+        builder: (context, state) {
+          if (state is FamilyLoadSuccess) {
+            // Показываем кнопку только если пользователь состоит в семье
+            return FloatingActionButton(
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => const AddMemberDialog(),
+                );
+              },
+              tooltip: 'Добавить участника',
+              child: const Icon(Icons.person_add),
             );
           }
+          // Если пользователь не состоит в семье, не показываем кнопку
+          return const SizedBox.shrink();
         },
-        itemBuilder:
-            (context) => [
-              const PopupMenuItem(
-                value: 'add_member',
-                child: Row(
-                  children: [
-                    Icon(Icons.person_add, color: Colors.deepPurple),
-                    SizedBox(width: 8),
-                    Text('Добавить участника'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'invite_member',
-                child: Row(
-                  children: [
-                    Icon(Icons.mail_outline, color: Colors.deepPurple),
-                    SizedBox(width: 8),
-                    Text('Пригласить участника'),
-                  ],
-                ),
-              ),
-            ],
       ),
     );
   }
 
   Widget _buildMemberTile(BuildContext context, User member) {
+    final currentUser = context.read<AuthenticationBloc>().state.user;
+    final isParent =
+        currentUser?.role ==
+        'Parent'; // Проверяем, является ли текущий пользователь родителем
+    final isSelf =
+        currentUser?.id ==
+        member.id; // Проверяем, является ли это текущий пользователь
+
     return ListTile(
+      leading: CircleAvatar(
+        radius: 24,
+        backgroundColor: Colors.deepPurple,
+        backgroundImage:
+            member.avatar != null && member.avatar!.isNotEmpty
+                ? NetworkImage(member.avatar!) // Загружаем аватар, если он есть
+                : null,
+        child:
+            member.avatar == null || member.avatar!.isEmpty
+                ? Text(
+                  member.name.isNotEmpty ? member.name[0].toUpperCase() : '?',
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                )
+                : null,
+      ),
       title: Text(member.name),
       subtitle: Text(member.email),
       onTap: () {
         UserDetailBottomSheet.show(context, member);
       },
-      trailing: PopupMenuButton<String>(
-        onSelected: (value) {
-          if (value == 'Удалить') {
-            final familyId =
-                context.read<FamilyBloc>().state is FamilyLoadSuccess
-                    ? (context.read<FamilyBloc>().state as FamilyLoadSuccess)
-                        .familyName
-                    : '';
-            context.read<FamilyBloc>().add(
-              FamilyRemoveMemberRequested(
-                memberId: member.id,
-                familyId: familyId,
-              ),
-            );
+      trailing:
+          (isParent ||
+                  isSelf) // Кнопка "Удалить" доступна только родителям или самому пользователю
+              ? PopupMenuButton<String>(
+                onSelected: (value) {
+                  if (value == 'Удалить') {
+                    final familyId =
+                        context.read<FamilyBloc>().state is FamilyLoadSuccess
+                            ? (context.read<FamilyBloc>().state
+                                    as FamilyLoadSuccess)
+                                .familyName
+                            : '';
+                    context.read<FamilyBloc>().add(
+                      FamilyRemoveMemberRequested(
+                        memberId: member.id,
+                        familyId: familyId,
+                      ),
+                    );
 
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Удаление ${member.name}...')),
-            );
-          } else if (value == 'Изменить роль') {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Изменить роль ${member.name}')),
-            );
-          }
-        },
-        itemBuilder:
-            (context) => [
-              const PopupMenuItem(value: 'Удалить', child: Text('Удалить')),
-              const PopupMenuItem(
-                value: 'Изменить роль',
-                child: Text('Изменить роль'),
-              ),
-            ],
-      ),
-    );
-  }
-
-  void _showUserDetailsBottomSheet(BuildContext context, User user) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (BuildContext context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            left: 16,
-            right: 16,
-            top: 16,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[400],
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Имя: ${user.name}',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Email: ${user.email}',
-                style: const TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 8),
-              if (user.role != null)
-                Text(
-                  'Роль: ${user.role}',
-                  style: const TextStyle(fontSize: 16),
-                ),
-              if (user.gender != null)
-                Text(
-                  'Пол: ${user.gender}',
-                  style: const TextStyle(fontSize: 16),
-                ),
-              if (user.birthDate != null)
-                Text(
-                  'Дата рождения: ${user.birthDate}',
-                  style: const TextStyle(fontSize: 16),
-                ),
-              Text(
-                'Количество очков: ${user.point}',
-                style: const TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 16),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text(
-                    'Закрыть',
-                    style: TextStyle(color: Colors.deepPurple),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Удаление ${member.name}...')),
+                    );
+                  }
+                },
+                itemBuilder:
+                    (context) => [
+                      const PopupMenuItem(
+                        value: 'Удалить',
+                        child: Text('Удалить'),
+                      ),
+                    ],
+              )
+              : null, // Если пользователь не родитель и не сам себя, кнопка не отображается
     );
   }
 }

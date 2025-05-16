@@ -9,13 +9,18 @@ import 'package:family_repository/family_repository.dart'; // Ensure this is the
 import 'package:user_api/user_api.dart' show User;
 import 'package:user_repository/user_repository.dart';
 
+import '../../authentication/authentication.dart';
+
 part 'family_event.dart';
 part 'family_state.dart';
 
 class FamilyBloc extends Bloc<FamilyEvent, FamilyState> {
-  FamilyBloc({required FamilyRepository familyRepository})
-    : _familyRepository = familyRepository,
-      super(FamilyInitial()) {
+  FamilyBloc({
+    required FamilyRepository familyRepository,
+    required AuthenticationBloc authenticationBloc,
+  }) : _familyRepository = familyRepository,
+       _authenticationBloc = authenticationBloc,
+       super(FamilyInitial()) {
     on<FamilyRequested>(_onFamilyRequested);
     on<FamilyCreateRequested>(_onFamilyCreateRequested);
     on<FamilyJoinRequested>(_onFamilyJoinRequested);
@@ -25,14 +30,19 @@ class FamilyBloc extends Bloc<FamilyEvent, FamilyState> {
     on<CreateRewardRequested>(_onCreateRewardRequested);
     on<RedeemRewardRequested>(_onRedeemRewardRequested);
     on<FamilyPhotoUpdateRequested>(_onFamilyPhotoUpdateRequested);
+    on<UpdateRewardRequested>(_onUpdateRewardRequested);
+    on<GetRedemptionsRequested>(_onGetRedemptionsRequested);
+    on<DeleteRewardRequested>(_onDeleteRewardRequested);
   }
 
   final FamilyRepository _familyRepository;
+  final AuthenticationBloc _authenticationBloc;
 
   Future<void> _onFamilyRequested(
     FamilyRequested event,
     Emitter<FamilyState> emit,
   ) async {
+    _authenticationBloc.add(AuthenticationUserRefreshed());
     emit(FamilyLoading());
     try {
       final user = await _familyRepository.getCurrentUser();
@@ -183,6 +193,7 @@ class FamilyBloc extends Bloc<FamilyEvent, FamilyState> {
     print('Redeeming reward with ID: ${event.rewardId}'); // Отладочный вывод
     try {
       emit(FamilyLoading()); // Переходим в состояние загрузки
+      add(FamilyRequested());
       await _familyRepository.redeemReward(event.rewardId); // Обмен награды
       add(FamilyRequested()); // Обновляем данные семьи после обмена
     } catch (e) {
@@ -198,6 +209,107 @@ class FamilyBloc extends Bloc<FamilyEvent, FamilyState> {
       emit(FamilyLoading());
       await _familyRepository.updateFamilyPhoto(event.familyId, event.photo);
       add(FamilyRequested()); // Обновляем данные семьи после загрузки фото
+    } catch (e) {
+      emit(FamilyLoadFailure(error: e.toString()));
+    }
+  }
+
+  Future<void> _onUpdateRewardRequested(
+    UpdateRewardRequested event,
+    Emitter<FamilyState> emit,
+  ) async {
+    try {
+      emit(FamilyLoading()); // Переход в состояние загрузки
+
+      final user = await _familyRepository.getCurrentUser();
+      if (user.familyId == null || user.familyId!.isEmpty) {
+        throw Exception('User is not part of a family');
+      }
+
+      // Создаём объект RewardUpdateInput
+      final input = RewardUpdateInput(
+        familyId: user.familyId!,
+        title: event.reward.title,
+        description: event.reward.description,
+        cost: event.reward.cost,
+      );
+
+      // Вызываем метод обновления награды в репозитории
+      await _familyRepository.updateReward(input, event.reward.id);
+
+      // Обновляем данные семьи после успешного обновления награды
+      add(FamilyRequested());
+    } catch (e) {
+      emit(FamilyLoadFailure(error: e.toString())); // Обработка ошибок
+    }
+  }
+
+  Future<void> _onGetRedemptionsRequested(
+    GetRedemptionsRequested event,
+    Emitter<FamilyState> emit,
+  ) async {
+    try {
+      // Сохраняем текущее состояние, если оно FamilyLoadSuccess
+      final currentState = state;
+      String? familyName;
+      List<User>? members;
+      List<Reward>? rewards;
+      int? userPoints;
+      String? userName;
+      String? familyPhotoUrl;
+      List<RewardRedemption> updatedRedemptions = [];
+
+      if (currentState is FamilyLoadSuccess) {
+        familyName = currentState.familyName;
+        members = currentState.members;
+        rewards = currentState.rewards;
+        userPoints = currentState.userPoints;
+        userName = currentState.userName;
+        familyPhotoUrl = currentState.familyPhotoUrl;
+        updatedRedemptions =
+            currentState.redemptionHistory
+                .where((redemption) => redemption.userId != event.userId)
+                .toList(); // Удаляем старую историю для выбранного пользователя
+      }
+
+      emit(FamilyLoading()); // Переход в состояние загрузки
+
+      // Загружаем новые данные
+      final redemptions = await _familyRepository.getRedemptionsByUserIDParam(
+        event.userId,
+      );
+
+      print('_onGetRedemptionsRequested – Полученные обмены: $redemptions');
+
+      // Обновляем состояние с новой историей наград
+      emit(
+        FamilyLoadSuccess(
+          familyName: familyName ?? '',
+          members: members ?? [],
+          rewards: rewards ?? [],
+          userPoints: userPoints ?? 0,
+          userName: userName ?? '',
+          redemptionHistory: [
+            ...updatedRedemptions, // Сохраняем историю других пользователей
+            ...redemptions, // Добавляем обновлённую историю для выбранного пользователя
+          ],
+          familyPhotoUrl: familyPhotoUrl ?? '',
+        ),
+      );
+    } catch (e) {
+      emit(FamilyLoadFailure(error: e.toString())); // Обработка ошибок
+    }
+  }
+
+  Future<void> _onDeleteRewardRequested(
+    DeleteRewardRequested event,
+    Emitter<FamilyState> emit,
+  ) async {
+    try {
+      print('Deleting reward with ID: ${event.rewardId}'); // Отладочный вывод
+      emit(FamilyLoading());
+      await _familyRepository.deleteReward(event.rewardId);
+      add(FamilyRequested()); // Обновляем данные семьи после удаления награды
     } catch (e) {
       emit(FamilyLoadFailure(error: e.toString()));
     }

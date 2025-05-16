@@ -136,7 +136,7 @@ class _FamilyCardState extends State<FamilyCard> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
-                      'Идентификатор:',
+                      'Идентификатор',
                       style: TextStyle(fontSize: 14, color: Colors.black54),
                     ),
                     Row(

@@ -1,120 +1,10 @@
-// import 'package:flutter/material.dart';
-// import 'package:flutter_bloc/flutter_bloc.dart';
-// import 'package:family_flow_app_client/family/bloc/family_bloc.dart';
-
-// import 'widgets/widgets.dart';
-
-// class RewardsPage extends StatelessWidget {
-//   const RewardsPage({super.key});
-
-//   Future<void> _refreshFamily(BuildContext context) async {
-//     context.read<FamilyBloc>().add(FamilyRequested());
-//   }
-
-//   void _redeemReward(BuildContext context, String rewardId) {
-//     context.read<FamilyBloc>().add(RedeemRewardRequested(rewardId: rewardId));
-//   }
-
-//   void _navigateToHistory(BuildContext context) {
-//     // Логика перехода на экран истории обменов
-//     Navigator.of(context).push(
-//       MaterialPageRoute(
-//         builder: (context) => const RedemptionHistoryPage(), // Экран истории
-//       ),
-//     );
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: const Text('Вознаграждения'),
-//         actions: [
-//           IconButton(
-//             icon: const Icon(Icons.history),
-//             tooltip: 'История обменов',
-//             onPressed: () => _navigateToHistory(context),
-//           ),
-//         ],
-//       ),
-//       body: RefreshIndicator(
-//         onRefresh: () => _refreshFamily(context),
-//         child: BlocBuilder<FamilyBloc, FamilyState>(
-//           builder: (context, state) {
-//             if (state is FamilyLoading) {
-//               return const Center(child: CircularProgressIndicator());
-//             } else if (state is FamilyLoadFailure) {
-//               return Center(child: Text('Ошибка: ${state.error}'));
-//             } else if (state is FamilyLoadSuccess) {
-//               final rewards = state.rewards;
-//               final userPoints = state.userPoints;
-//               final userName = state.userName;
-
-//               return Column(
-//                 children: [
-//                   // Карточка с информацией о пользователе
-//                   UserInfoCard(userName: userName, userPoints: userPoints),
-
-//                   // Объяснение списка наград
-//                   Padding(
-//                     padding: const EdgeInsets.symmetric(
-//                       horizontal: 16,
-//                       vertical: 8,
-//                     ),
-//                     child: Text(
-//                       'Выберите награду, чтобы обменять свои очки. '
-//                       'Награды доступны только при достаточном количестве очков.',
-//                       style: const TextStyle(
-//                         fontSize: 14,
-//                         color: Colors.black54,
-//                       ),
-//                       textAlign: TextAlign.center,
-//                     ),
-//                   ),
-
-//                   // Список наград
-//                   Expanded(
-//                     child: ListView.builder(
-//                       padding: const EdgeInsets.all(16),
-//                       itemCount: rewards.length,
-//                       itemBuilder: (context, index) {
-//                         final reward = rewards[index];
-//                         return RewardTile(
-//                           // title: reward.title,
-//                           // description: reward.description,
-//                           userPoints: userPoints,
-//                           // rewardCost: reward.cost,
-//                           reward: reward,
-//                           onRedeem: () => _redeemReward(context, reward.id),
-//                         );
-//                       },
-//                     ),
-//                   ),
-//                 ],
-//               );
-//             }
-//             return const SizedBox.shrink();
-//           },
-//         ),
-//       ),
-//       floatingActionButton: FloatingActionButton(
-//         onPressed: () {
-//           showDialog(
-//             context: context,
-//             builder: (context) => const CreateRewardDialog(),
-//           );
-//         },
-//         child: const Icon(Icons.add),
-//       ),
-//     );
-//   }
-// }
-
 import 'package:family_api/family_api.dart' show Reward, RewardRedemption;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:family_flow_app_client/family/bloc/family_bloc.dart';
+import 'package:user_api/user_api.dart' show User;
 
+import '../../authentication/authentication.dart';
 import 'widgets/widgets.dart';
 
 class RewardsPage extends StatefulWidget {
@@ -139,12 +29,17 @@ class _RewardsPageState extends State<RewardsPage> {
   void _navigateToHistory(
     BuildContext context,
     List<RewardRedemption> redemptionHistory,
+    List<User> children,
+    bool isParent,
   ) {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder:
-            (context) =>
-                RedemptionHistoryPage(redemptionHistory: redemptionHistory),
+            (context) => RedemptionHistoryPage(
+              children: children,
+              redemptionHistory: redemptionHistory,
+              isParent: isParent,
+            ),
       ),
     );
   }
@@ -178,6 +73,8 @@ class _RewardsPageState extends State<RewardsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final currentUser = context.read<AuthenticationBloc>().state.user;
+    final isParent = currentUser?.role == 'Parent';
     return Scaffold(
       appBar: AppBar(
         title: const Text('Вознаграждения'),
@@ -189,8 +86,14 @@ class _RewardsPageState extends State<RewardsPage> {
                   icon: const Icon(Icons.history),
                   tooltip: 'История обменов',
                   onPressed:
-                      () =>
-                          _navigateToHistory(context, state.redemptionHistory),
+                      () => _navigateToHistory(
+                        context,
+                        state.redemptionHistory,
+                        state.members
+                            .where((member) => member.role == 'Child')
+                            .toList(),
+                        currentUser.role == 'Parent',
+                      ),
                 );
               }
               return const SizedBox.shrink();
@@ -261,7 +164,12 @@ class _RewardsPageState extends State<RewardsPage> {
               return Column(
                 children: [
                   // Карточка с информацией о пользователе
-                  UserInfoCard(userName: userName, userPoints: userPoints),
+                  UserInfoCard(
+                    userName: userName,
+                    userPoints: isParent ? null : userPoints,
+                    isParent: isParent,
+                    avatarUrl: currentUser.avatar,
+                  ),
 
                   // Объяснение списка наград
                   Padding(
@@ -270,8 +178,10 @@ class _RewardsPageState extends State<RewardsPage> {
                       vertical: 8,
                     ),
                     child: Text(
-                      'Выберите награду, чтобы обменять свои очки. '
-                      'Награды доступны только при достаточном количестве очков.',
+                      isParent
+                          ? 'Здесь вы можете управлять наградами для вашей семьи.'
+                          : 'Выберите награду, чтобы обменять свои очки. '
+                              'Награды доступны только при достаточном количестве очков.',
                       style: const TextStyle(
                         fontSize: 14,
                         color: Colors.black54,
@@ -291,6 +201,7 @@ class _RewardsPageState extends State<RewardsPage> {
                           userPoints: userPoints,
                           reward: reward,
                           onRedeem: () => _redeemReward(context, reward.id),
+                          isParent: currentUser.role == 'Parent',
                         );
                       },
                     ),
@@ -302,15 +213,18 @@ class _RewardsPageState extends State<RewardsPage> {
           },
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder: (context) => const CreateRewardDialog(),
-          );
-        },
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton:
+          isParent
+              ? FloatingActionButton(
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => const CreateRewardDialog(),
+                  );
+                },
+                child: const Icon(Icons.add),
+              )
+              : null,
     );
   }
 }

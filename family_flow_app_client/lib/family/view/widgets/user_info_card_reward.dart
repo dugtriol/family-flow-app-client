@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 
 class UserInfoCard extends StatelessWidget {
   final String userName;
-  final int userPoints;
+  final int? userPoints;
+  final bool isParent;
+  final String? avatarUrl; // Добавили поле для аватара
 
   const UserInfoCard({
     required this.userName,
-    required this.userPoints,
+    this.userPoints,
+    required this.isParent,
+    this.avatarUrl, // Передаём URL аватара
     super.key,
   });
 
@@ -19,29 +23,52 @@ class UserInfoCard extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Привет, $userName!',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Ваши очки: $userPoints',
-                  style: const TextStyle(fontSize: 16, color: Colors.black54),
-                ),
-              ],
+            CircleAvatar(
+              radius: 30,
+              backgroundColor: Colors.deepPurple,
+              backgroundImage:
+                  avatarUrl != null && avatarUrl!.isNotEmpty
+                      ? NetworkImage(
+                        avatarUrl!,
+                      ) // Загружаем аватар, если он есть
+                      : null,
+              child:
+                  avatarUrl == null || avatarUrl!.isEmpty
+                      ? Text(
+                        userName.isNotEmpty ? userName[0].toUpperCase() : '?',
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      )
+                      : null,
             ),
-            const Icon(
-              Icons.account_circle,
-              size: 48,
-              color: Colors.deepPurple,
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    isParent
+                        ? 'Здравствуйте, $userName!'
+                        : 'Привет, $userName!',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  if (!isParent && userPoints != null)
+                    Text(
+                      'Ваши очки: $userPoints',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: Colors.black54,
+                      ),
+                    ),
+                ],
+              ),
             ),
           ],
         ),

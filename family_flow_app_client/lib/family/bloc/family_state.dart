@@ -71,3 +71,12 @@ class FamilyPhotoUpdateRequested extends FamilyEvent {
   @override
   List<Object> get props => [familyId, photo];
 }
+
+class FamilyRedemptionsLoadSuccess extends FamilyState {
+  final List<RewardRedemption> redemptions;
+
+  const FamilyRedemptionsLoadSuccess({required this.redemptions});
+
+  @override
+  List<Object> get props => [redemptions];
+}

@@ -79,3 +79,30 @@ class RedeemRewardRequested extends FamilyEvent {
   @override
   List<Object?> get props => [rewardId];
 }
+
+class UpdateRewardRequested extends FamilyEvent {
+  final Reward reward;
+
+  const UpdateRewardRequested(this.reward);
+
+  @override
+  List<Object> get props => [reward];
+}
+
+class GetRedemptionsRequested extends FamilyEvent {
+  final String userId;
+
+  const GetRedemptionsRequested(this.userId);
+
+  @override
+  List<Object> get props => [userId];
+}
+
+class DeleteRewardRequested extends FamilyEvent {
+  final String rewardId;
+
+  const DeleteRewardRequested(this.rewardId);
+
+  @override
+  List<Object> get props => [rewardId];
+}

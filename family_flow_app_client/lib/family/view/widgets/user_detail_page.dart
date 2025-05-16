@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // Для работы с Clipboard
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart'; // Для форматирования даты
 import 'package:user_api/user_api.dart' show User;
+
+import '../../../authentication/authentication.dart';
 
 class UserDetailBottomSheet {
   static void show(BuildContext context, User user) {
@@ -37,16 +40,27 @@ class UserDetailBottomSheet {
               Row(
                 children: [
                   CircleAvatar(
-                    radius: 30,
+                    radius: 40,
                     backgroundColor: Colors.deepPurple,
-                    child: Text(
-                      user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
+                    backgroundImage:
+                        user.avatar != null && user.avatar!.isNotEmpty
+                            ? NetworkImage(
+                              user.avatar!,
+                            ) // Загружаем аватар, если он есть
+                            : null,
+                    child:
+                        user.avatar == null || user.avatar!.isEmpty
+                            ? Text(
+                              user.name.isNotEmpty
+                                  ? user.name[0].toUpperCase()
+                                  : '?',
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            )
+                            : null,
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -56,24 +70,48 @@ class UserDetailBottomSheet {
                         Text(
                           user.name,
                           style: const TextStyle(
-                            fontSize: 20,
+                            fontSize: 22,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        Text(
-                          user.email,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey,
-                          ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                user.email,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            IconButton(
+                              icon: const Icon(
+                                Icons.copy,
+                                size: 20,
+                                color: Colors.deepPurple,
+                              ),
+                              onPressed: () {
+                                Clipboard.setData(
+                                  ClipboardData(text: user.email),
+                                );
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Email скопирован'),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              // Поле для идентификатора
+              const SizedBox(height: 10),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -94,19 +132,15 @@ class UserDetailBottomSheet {
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              if (user.role != null) _buildDetailRow('Роль', user.role),
-              if (user.gender != null) _buildDetailRow('Пол', user.gender),
-              // Поле для отображения даты рождения
-              if (user.birthDate != null)
-                _buildDetailRow(
-                  'Дата рождения',
-                  DateFormat(
-                    'dd.MM.yyyy',
-                    'ru_RU',
-                  ).format(DateTime.parse(user.birthDate!.toIso8601String())),
-                ),
-              _buildDetailRow('Количество очков', user.point.toString()),
+              const SizedBox(height: 10),
+              _buildDetailRow(
+                'Дата рождения',
+                user.birthDate != null
+                    ? DateFormat('d MMMM yyyy', 'ru').format(user.birthDate!)
+                    : 'Отсутствует',
+              ),
+              if (user.role != 'Parent')
+                _buildDetailRow('Количество очков', user.point.toString()),
               const SizedBox(height: 16),
               Align(
                 alignment: Alignment.centerRight,
