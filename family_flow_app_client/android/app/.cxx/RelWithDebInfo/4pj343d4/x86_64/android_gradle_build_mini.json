@@ -1,0 +1,20 @@
+{
+  "buildFiles": [
+    "/Users/aimandzhi/development/flutter/packages/flutter_tools/gradle/src/main/groovy/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/Users/aimandzhi/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+      "-C",
+      "/Users/aimandzhi/VScodeProjects/family-flow-app-client/family_flow_app_client/android/app/.cxx/RelWithDebInfo/4pj343d4/x86_64",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/Users/aimandzhi/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+    "-C",
+    "/Users/aimandzhi/VScodeProjects/family-flow-app-client/family_flow_app_client/android/app/.cxx/RelWithDebInfo/4pj343d4/x86_64",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {}
+}
