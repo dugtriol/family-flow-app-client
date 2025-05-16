@@ -1,5 +1,6 @@
 import 'package:authentication_repository/authentication_repository.dart';
 import 'package:chats_repository/chats_repository.dart';
+import 'package:diary_repository/diary_repository.dart';
 import 'package:family_repository/family_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -13,6 +14,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import '../../authentication/authentication.dart';
 import '../../chats/chats.dart';
+import '../../diary/diary.dart';
 import '../../family/family.dart';
 import '../../home/view/view.dart';
 import '../../login/view/view.dart';
@@ -39,6 +41,7 @@ class App extends StatelessWidget {
         RepositoryProvider(create: (_) => WishlistRepository()),
         RepositoryProvider(create: (_) => NotificationRepository()),
         RepositoryProvider(create: (_) => ChatsRepository()),
+        RepositoryProvider(create: (_) => DiaryRepository()),
       ],
       child: MultiBlocProvider(
         providers: [
@@ -57,6 +60,7 @@ class App extends StatelessWidget {
             create:
                 (context) => FamilyBloc(
                   familyRepository: context.read<FamilyRepository>(),
+                  authenticationBloc: context.read<AuthenticationBloc>(),
                 )..add(FamilyRequested()),
           ),
           BlocProvider(
@@ -71,6 +75,11 @@ class App extends StatelessWidget {
                 (context) =>
                     ChatsBloc(chatsRepository: context.read<ChatsRepository>()),
           ),
+          BlocProvider(
+            create:
+                (context) =>
+                    DiaryBloc(diaryRepository: context.read<DiaryRepository>()),
+          ),
         ],
         child: const AppView(),
       ),
@@ -84,41 +93,6 @@ class AppView extends StatefulWidget {
   @override
   State<AppView> createState() => _AppViewState();
 }
-
-// class _AppViewState extends State<AppView> {
-//   final _navigatorKey = GlobalKey<NavigatorState>();
-
-//   NavigatorState get _navigator => _navigatorKey.currentState!;
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return MaterialApp(
-//       navigatorKey: _navigatorKey,
-//       builder: (context, child) {
-//         return BlocListener<AuthenticationBloc, AuthenticationState>(
-//           listener: (context, state) {
-//             switch (state.status) {
-//               case AuthenticationStatus.authenticated:
-//                 _navigator.pushAndRemoveUntil<void>(
-//                   HomePage.route(),
-//                   (route) => false,
-//                 );
-//               case AuthenticationStatus.unauthenticated:
-//                 _navigator.pushAndRemoveUntil<void>(
-//                   LoginPage.route(),
-//                   (route) => false,
-//                 );
-//               case AuthenticationStatus.unknown:
-//                 break;
-//             }
-//           },
-//           child: child,
-//         );
-//       },
-//       onGenerateRoute: (_) => SplashPage.route(),
-//     );
-//   }
-// }
 
 class _AppViewState extends State<AppView> {
   final _navigatorKey = GlobalKey<NavigatorState>();
@@ -152,9 +126,9 @@ class _AppViewState extends State<AppView> {
   Future<void> _showTestNotification() async {
     const AndroidNotificationDetails androidNotificationDetails =
         AndroidNotificationDetails(
-          'test_channel', // ID канала
-          'Test Notifications', // Имя канала
-          channelDescription: 'Channel for test notifications',
+          'Family Flow', // ID канала
+          'Вход пользователя', // Имя канала
+          channelDescription: 'Добро пожаловать в Family Flow!',
           importance: Importance.max,
           priority: Priority.high,
         );
@@ -165,8 +139,8 @@ class _AppViewState extends State<AppView> {
 
     await _notificationsPlugin.show(
       0, // ID уведомления
-      'Test Notification', // Заголовок
-      'This is a test notification', // Текст
+      'Family Flow', // Заголовок
+      'Добро пожаловать в Family Flow!', // Текст
       notificationDetails,
       payload: 'Test Payload', // Полезная нагрузка
     );
@@ -188,7 +162,7 @@ class _AppViewState extends State<AppView> {
                   (route) => false,
                 );
                 // Показываем тестовое уведомление при успешной аутентификации
-                _showTestNotification();
+                // _showTestNotification();
                 break;
               case AuthenticationStatus.unauthenticated:
                 _navigator.pushAndRemoveUntil<void>(
