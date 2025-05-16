@@ -41,7 +41,8 @@ class HomePage extends StatelessWidget {
         BlocProvider(
           create:
               (_) =>
-                  FamilyBloc(familyRepository: familyRepository)
+                  FamilyBloc(familyRepository: familyRepository, 
+                      authenticationBloc: context.read<AuthenticationBloc>())
                     ..add(FamilyRequested()), // Загружаем данные семьи
         ),
         BlocProvider(

@@ -1,14 +1,14 @@
 import 'dart:io';
 
 import 'package:bloc/bloc.dart';
+import 'package:family_flow_app_client/app/view/notification_service.dart'
+    show NotificationService;
 import 'package:family_flow_app_client/firebase_options.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:firebase_core/firebase_core.dart';
-// import 'package:firebase_messaging/firebase_messaging.dart';
-// import 'package:yandex_maps_mapkit_lite/init.dart' as init;
 
 import 'app/app.dart';
 
@@ -18,6 +18,8 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 final webSocketService = WebSocketService();
+final websocketUrl = 'ws://family-flow-app-1-aigul.amvera.io:80/ws';
+// final websocketUrl = 'ws://10.0.2.2:8080/ws';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,7 +39,9 @@ Future<void> main() async {
   // Обработка фоновых уведомлений
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-  webSocketService.connect('ws://10.0.2.2:8080/ws');
+  webSocketService.connect(websocketUrl);
+
+  await NotificationService().initialize();
 
   runApp(App());
 }
